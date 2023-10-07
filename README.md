@@ -82,3 +82,8 @@ UUIDField(**options)
 # many to many relationship
 .ManyToManyField(table_name)
 
+# Table Naming
+in the models.py; 
+
+ class Meta:
+        db_table = 'custom_table_name'
