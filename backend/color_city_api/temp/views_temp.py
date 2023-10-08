@@ -5,11 +5,12 @@ from rest_framework import permissions
 from .models import Todo
 from .serializers import TodoSerializer
 
+# Read and Insert Logic Only 
 class TodoListApiView(APIView):
     # add permission to check if user is authenticated
     permission_classes = [permissions.IsAuthenticated]
 
-    # 1. List all (get all)
+    # 1. List all (Get All)
     def get(self, request, *args, **kwargs):
         '''
         List all the todo items for given requested user
@@ -18,16 +19,16 @@ class TodoListApiView(APIView):
         serializer = TodoSerializer(todos, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    # 2. Create
+    # 2. Create (Insert 1)
     def post(self, request, *args, **kwargs):
-        '''
-        Create the Todo with given todo data
-        '''
+        # Gets the data from the request to create an entry
         data = {
             'task': request.data.get('task'), 
             'completed': request.data.get('completed'), 
             'user': request.user.id
         }
+
+        # This revalidates if the data provided is in the same order as the array in the serializer
         serializer = TodoSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
@@ -35,6 +36,7 @@ class TodoListApiView(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+# Get, Update and Delete Logic only
 class TodoDetailApiView(APIView):
     # add permission to check if user is authenticated
     permission_classes = [permissions.IsAuthenticated]
@@ -48,7 +50,7 @@ class TodoDetailApiView(APIView):
         except Todo.DoesNotExist:
             return None
 
-    # 3. Retrieve
+    # 3. Retrieve / Get a matching entry 
     def get(self, request, todo_id, *args, **kwargs):
         '''
         Retrieves the Todo with given todo_id

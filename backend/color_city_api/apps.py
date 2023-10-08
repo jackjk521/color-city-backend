@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class ColorcitydbConfig(AppConfig):
+class ColorCityApiConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'colorcitydb'
+    name = 'color_city_api'

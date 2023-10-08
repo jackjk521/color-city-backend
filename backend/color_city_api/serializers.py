@@ -1,17 +1,7 @@
 from rest_framework import serializers
-from .models import Customer
+from .models import Todo
 
-class CustomerSerializer(serializers.ModelSerializer):
+class TodoSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Customer
-        fields = ['pk', 'name', 'email', 'created']
-
-class AnotherSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = AnotherModel
-        fields = ['field1', 'field2', 'field3']
-
-class YetAnotherSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = YetAnotherModel
-        fields = ['fieldA', 'fieldB', 'fieldC']
+        model = Todo
+        fields = ["task", "completed", "timestamp", "updated", "user"]

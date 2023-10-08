@@ -1,5 +1,5 @@
 """
-ASGI config for ccbackend project.
+ASGI config for color_city_backend project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ccbackend.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'color_city_backend.settings')
 
 application = get_asgi_application()

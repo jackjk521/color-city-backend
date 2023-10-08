@@ -1,5 +1,5 @@
 """
-URL configuration for ccbackend project.
+URL configuration for color_city_backed project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/4.2/topics/http/urls/
@@ -15,8 +15,13 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from color_city_api import urls as cc_api
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api-auth/', include('rest_framework.urls')),
+    # TO update 
+    path('color_city/', include(cc_api)),
+
 ]

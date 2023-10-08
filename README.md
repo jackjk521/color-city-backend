@@ -50,15 +50,19 @@ Serializers help with translating between JSON, XML, and native Python objects.
 Create models = tables to migrate
 Create Serializers to transform JSON/XML or native Python objects
 Create queries in the views.py 
-Add the queries to the urls.py
+Add the queries to the urls.py (format ie /admin or /page_name) - MAIN
+Add the specific queries to the urls.py (for CRUD and etc) - API
 
 ## Modal Field Types
 
 BooleanField(**options)
 CharField(max_length=None, **options)
 DecimalField (max_digits=None, decimal_places=None, **options)
+
 DateTimeField (auto_now=False, auto_now_add=False, **options)
 DateField (auto_now=False, auto_now_add=False, **options)
+# auto_now (adds everytime the object is saved) 
+# auto_now_add (adds only when the object is created)
 EmailField(max_length=254, **options)
 FileField(upload_to='', storage=None, max_length=100, **options)
 IntegerField(**options)
@@ -66,6 +70,7 @@ SlugField(max_length=50, **options)
 TextField(**options)
 UUIDField(**options)
 
+# blank(true) means it can be null 
 
 ## Relationships
 
@@ -87,3 +92,6 @@ in the models.py;
 
  class Meta:
         db_table = 'custom_table_name'
+
+
+
