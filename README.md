@@ -70,7 +70,9 @@ SlugField(max_length=50, **options)
 TextField(**options)
 UUIDField(**options)
 
-# blank(true) means it can be null 
+
+# blank=True allows the field to be left blank. If False, the field must have a value.
+# null=True allows the field to have a NULL database value. If False, the field must have a value.
 
 ## Relationships
 
