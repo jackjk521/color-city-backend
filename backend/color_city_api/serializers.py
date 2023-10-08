@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Branch, Item, Catalyst 
+from .models import User, Branch, Item, Brand, Supplier
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -19,9 +19,12 @@ class ItemSerializer(serializers.ModelSerializer):
                   "unit", "package", "item_quantity_w_vat", "item_quantity_wo_vat", "retail_price", 
                   "catalyst", "created_at", "updated_at", "removed"]
 
-class CatalystSerializer(serializers.ModelSerializer):
+class BrandSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Catalyst
-        fields = ["item_name", "total_quantity", "unit", "package", "item_quantity_w_vat", 
-                  "item_quantity_wo_vat", "retail_price", "created_at", "updated_at", "removed"]
+        model = Brand
+        fields = ["brand_name", "supplier_id", "created_at", "updated_at", "removed"]
 
+class SupplierSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Supplier
+        fields = ["supplier_name", "contact_num", "created_at", "updated_at", "removed"]

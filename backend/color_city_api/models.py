@@ -64,15 +64,16 @@ class Item(models.Model):
         unique=True
     )
     item_name = models.CharField(max_length = 255, blank = False, null = False)
+    brand_id = models.ForeignKey("Brand", on_delete=models.DO_NOTHING,  blank = False, null = False)
     total_quantity = models.IntegerField(blank = False, null = False)
     date_added = models.DateField(auto_now_add = True, auto_now = False, blank = True, null = True)
     category = models.CharField(max_length = 255, blank = True, null = True)
     unit = models.IntegerField()
-    package = models.CharField(max_length = 255, choice = PACKAGE_CHOICES , default= LITERS_4 , blank = False, null = False)
-    item_price_w_vat = models.DecimalField(decimal_places=2, blank = False, null = False)
-    item_price_wo_vat = models.DecimalField(decimal_places=2, blank = False, null = False)
-    retail_price = models.DecimalField(decimal_places=2, blank = True, null = True)
-    catalyst = models.ForeignKey("Catalyst", on_delete=models.DO_NOTHING,  blank = False, null = False)
+    package = models.CharField(max_length = 255, choices= PACKAGE_CHOICES , default= LITERS_4 , blank = False, null = False)
+    item_price_w_vat = models.DecimalField(max_digits= 20, decimal_places=2, blank = False, null = False)
+    item_price_wo_vat = models.DecimalField(max_digits= 20, decimal_places=2, blank = False, null = False)
+    retail_price = models.DecimalField(max_digits= 20, decimal_places=2, blank = True, null = True)
+    catalyst = models.BooleanField(default=False, blank = False, null = False)
     created_at = models.DateTimeField(auto_now_add = True, auto_now = False, blank = True, null = True)
     updated_at = models.DateTimeField(auto_now = True, blank = True, null = True)
     removed = models.BooleanField(default=False, blank = True, null = True)
@@ -83,31 +84,33 @@ class Item(models.Model):
     def __str__(self):
         return self.item_name
 
-# Catalyst Model
-class Catalyst(models.Model):
-    # Constants
-    LITER_1 = "L"
-    PIECES = "PCS"
-
-    PACKAGE_CHOICES = [
-        (LITER_1, "1 Liter"),
-        (PIECES, "Pieces"),
-    ]
-
+# Brand Model
+class Brand(models.Model):
     # Fields of your model
-    item_name = models.CharField(max_length = 255, blank = False, null = False)
-    total_quantity = models.IntegerField(blank = False, null = False)
-    unit = models.IntegerField()
-    package = models.CharField(max_length = 255, choice = PACKAGE_CHOICES , default= LITERS_4 , blank = False, null = False)
-    item_price_w_vat = models.DecimalField(decimal_places=2, blank = False, null = False)
-    item_price_wo_vat = models.DecimalField(decimal_places=2, blank = False, null = False)
-    retail_price = models.DecimalField(decimal_places=2, blank = True, null = True)
+    brand_name = models.CharField(max_length = 255, blank = False, null = False)
+    supplier_id = models.ForeignKey("Supplier", on_delete=models.DO_NOTHING,  blank = False, null = False)
     created_at = models.DateTimeField(auto_now_add = True, auto_now = False, blank = True, null = True)
     updated_at = models.DateTimeField(auto_now = True, blank = True, null = True)
     removed = models.BooleanField(default=False)
 
     class Meta:
-        db_table = 'catalysts'
+        db_table = 'brands'
 
     def __str__(self):
-        return self.item_name
+        return self.brand_name
+
+# Supplier Model
+class Supplier(models.Model):
+    # Fields of your model
+    supplier_name = models.CharField(max_length = 255, blank = False, null = False)
+    contact_num = models.IntegerField(max_digits=15, blank = False, null = False)
+    discount_rate = models.IntegerField(max_digits=3, blank = False, null = False)
+    created_at = models.DateTimeField(auto_now_add = True, auto_now = False, blank = True, null = True)
+    updated_at = models.DateTimeField(auto_now = True, blank = True, null = True)
+    removed = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = 'suppliers'
+
+    def __str__(self):
+        return self.supplier_name
