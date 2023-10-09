@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'color_city_api'
+    'color_city_api',
 ]
 
 MIDDLEWARE = [

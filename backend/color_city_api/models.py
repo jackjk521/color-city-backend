@@ -45,14 +45,14 @@ class Branch(models.Model):
 # Item Model
 class Item(models.Model):
     # Constants
-    LITERS_4 = "4L"
-    LITER_1 = "L"
+    LITER = "L"
+    PIECE = "PC"
     PIECES = "PCS"
     GALLONS = "GL"
 
     PACKAGE_CHOICES = [
-        (LITERS_4, "4 Liters"),
-        (LITER_1, "1 Liter"),
+        (LITER, "Liter"),
+        (PIECE, "Piece"),
         (PIECES, "Pieces"),
         (GALLONS, "Gallons"),
     ]
@@ -64,12 +64,12 @@ class Item(models.Model):
         unique=True
     )
     item_name = models.CharField(max_length = 255, blank = False, null = False)
-    brand_id = models.ForeignKey("Brand", on_delete=models.DO_NOTHING,  blank = False, null = False)
+    brand = models.ForeignKey("Brand", on_delete=models.DO_NOTHING,  blank = False, null = False)
     total_quantity = models.IntegerField(blank = False, null = False)
     date_added = models.DateField(auto_now_add = True, auto_now = False, blank = True, null = True)
     category = models.CharField(max_length = 255, blank = True, null = True)
-    unit = models.IntegerField()
-    package = models.CharField(max_length = 255, choices= PACKAGE_CHOICES , default= LITERS_4 , blank = False, null = False)
+    unit = models.IntegerField(blank = False, null = False)
+    package = models.CharField(max_length = 255, choices= PACKAGE_CHOICES , default= GALLONS , blank = False, null = False)
     item_price_w_vat = models.DecimalField(max_digits= 20, decimal_places=2, blank = False, null = False)
     item_price_wo_vat = models.DecimalField(max_digits= 20, decimal_places=2, blank = False, null = False)
     retail_price = models.DecimalField(max_digits= 20, decimal_places=2, blank = True, null = True)
@@ -88,7 +88,7 @@ class Item(models.Model):
 class Brand(models.Model):
     # Fields of your model
     brand_name = models.CharField(max_length = 255, blank = False, null = False)
-    supplier_id = models.ForeignKey("Supplier", on_delete=models.DO_NOTHING,  blank = False, null = False)
+    supplier = models.ForeignKey("Supplier", on_delete=models.DO_NOTHING,  blank = False, null = False)
     created_at = models.DateTimeField(auto_now_add = True, auto_now = False, blank = True, null = True)
     updated_at = models.DateTimeField(auto_now = True, blank = True, null = True)
     removed = models.BooleanField(default=False)
@@ -103,8 +103,8 @@ class Brand(models.Model):
 class Supplier(models.Model):
     # Fields of your model
     supplier_name = models.CharField(max_length = 255, blank = False, null = False)
-    contact_num = models.IntegerField(max_digits=15, blank = False, null = False)
-    discount_rate = models.IntegerField(max_digits=3, blank = False, null = False)
+    contact_num = models.CharField(max_length = 15, blank = False, null = False)
+    discount_rate = models.IntegerField(blank=False, null=False)
     created_at = models.DateTimeField(auto_now_add = True, auto_now = False, blank = True, null = True)
     updated_at = models.DateTimeField(auto_now = True, blank = True, null = True)
     removed = models.BooleanField(default=False)

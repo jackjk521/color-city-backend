@@ -16,7 +16,7 @@ class ItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = Item
         fields = ["item_number", "item_name", "total_quantity", "date_added", "category", 
-                  "unit", "package", "item_quantity_w_vat", "item_quantity_wo_vat", "retail_price", 
+                  "unit", "package", "item_price_w_vat", "item_price_wo_vat", "retail_price", 
                   "catalyst", "created_at", "updated_at", "removed"]
 
 class BrandSerializer(serializers.ModelSerializer):

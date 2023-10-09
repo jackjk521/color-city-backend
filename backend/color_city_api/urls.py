@@ -14,6 +14,6 @@ from .views.items import ItemApiView, ItemDetailApiView
 
 urlpatterns = [
     # Items
-    path('api/item', ItemApiView.as_view()),
+    path('api/items', ItemApiView.as_view()),
     path('api/item/<int:item_id>/', ItemDetailApiView.as_view()),    
 ]
