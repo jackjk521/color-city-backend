@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 # from django.contrib.auth.models import User
 
 # Helper Functions
@@ -11,7 +11,8 @@ def generate_product_number():
 # User Model
 class User(models.Model):
     # Fields of your model
-    branch_id = models.ForeignKey("Branch", on_delete=models.DO_NOTHING,  blank = False, null = False)
+    user_id = models.BigAutoField(primary_key=True, unique=True)
+    branch = models.ForeignKey("Branch", on_delete=models.DO_NOTHING,  blank = False, null = False)
     user_role = models.CharField(max_length = 100, blank = False, null = False)
     first_name = models.CharField(max_length = 255, blank = False, null = False)
     last_name = models.CharField(max_length = 255, blank = False, null = False)
@@ -25,10 +26,21 @@ class User(models.Model):
 
     def __str__(self):
         return self.user_name
+    
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            last_object = User.objects.select_for_update().order_by('-user_id').first()
+            if last_object:     
+                self.user_id = last_object.user_id + 1
+            else:
+                self.user_id = 1
+            super().save(*args, **kwargs)
+
 
 # Branch Model
 class Branch(models.Model):
     # Fields of your model
+    branch_id = models.BigAutoField(primary_key=True, unique=True)
     branch_name = models.CharField(max_length = 255, blank = False, null = False)
     address = models.CharField(max_length = 255, blank = False, null = False)
     created_at = models.DateTimeField(auto_now_add = True, auto_now = False, blank = True, null = True)
@@ -40,6 +52,15 @@ class Branch(models.Model):
 
     def __str__(self):
         return self.branch_name
+    
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            last_object = Branch.objects.select_for_update().order_by('-branch_id').first()
+            if last_object:     
+                self.branch_id = last_object.branch_id + 1
+            else:
+                self.branch_id = 1
+            super().save(*args, **kwargs)
 
 
 # Item Model
@@ -58,6 +79,7 @@ class Item(models.Model):
     ]
 
     # Fields of your model
+    item_id =  models.BigAutoField(primary_key=True, unique=True)
     item_number = models.CharField(     
         max_length=20,
         default=generate_product_number,
@@ -66,7 +88,6 @@ class Item(models.Model):
     item_name = models.CharField(max_length = 255, blank = False, null = False)
     brand = models.ForeignKey("Brand", on_delete=models.DO_NOTHING,  blank = False, null = False)
     total_quantity = models.IntegerField(blank = False, null = False)
-    date_added = models.DateField(auto_now_add = True, auto_now = False, blank = True, null = True)
     category = models.CharField(max_length = 255, blank = True, null = True)
     unit = models.IntegerField(blank = False, null = False)
     package = models.CharField(max_length = 255, choices= PACKAGE_CHOICES , default= GALLONS , blank = False, null = False)
@@ -84,9 +105,19 @@ class Item(models.Model):
     def __str__(self):
         return self.item_name
 
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            last_object = Item.objects.select_for_update().order_by('-item_id').first()
+            if last_object:     
+                self.item_id = last_object.item_id + 1
+            else:
+                self.item_id = 1
+            super().save(*args, **kwargs)
+        
 # Brand Model
 class Brand(models.Model):
     # Fields of your model
+    brand_id = models.BigAutoField(primary_key=True, unique=True)
     brand_name = models.CharField(max_length = 255, blank = False, null = False)
     supplier = models.ForeignKey("Supplier", on_delete=models.DO_NOTHING,  blank = False, null = False)
     created_at = models.DateTimeField(auto_now_add = True, auto_now = False, blank = True, null = True)
@@ -98,15 +129,24 @@ class Brand(models.Model):
 
     def __str__(self):
         return self.brand_name
+    
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            last_object = Brand.objects.select_for_update().order_by('-brand_id').first()
+            if last_object:     
+                self.brand_id = last_object.brand_id + 1
+            else:
+                self.brand_id = 1
+            super().save(*args, **kwargs)
 
 # Supplier Model
 class Supplier(models.Model):
-    # Fields of your model
-    supplier_name = models.CharField(max_length = 255, blank = False, null = False)
-    contact_num = models.CharField(max_length = 15, blank = False, null = False)
+    supplier_id = models.BigAutoField(primary_key=True, unique=True)
+    supplier_name = models.CharField(max_length=255, blank=False, null=False)
+    contact_num = models.CharField(max_length=15, blank=False, null=False)
     discount_rate = models.IntegerField(blank=False, null=False)
-    created_at = models.DateTimeField(auto_now_add = True, auto_now = False, blank = True, null = True)
-    updated_at = models.DateTimeField(auto_now = True, blank = True, null = True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
     removed = models.BooleanField(default=False)
 
     class Meta:
@@ -114,3 +154,12 @@ class Supplier(models.Model):
 
     def __str__(self):
         return self.supplier_name
+
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            last_object = Supplier.objects.select_for_update().order_by('-supplier_id').first()
+            if last_object:     
+                self.supplier_id = last_object.supplier_id + 1
+            else:
+                self.supplier_id = 1
+            super().save(*args, **kwargs)

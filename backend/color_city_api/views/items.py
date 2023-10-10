@@ -28,7 +28,6 @@ class ItemApiView(APIView):
             'item_name': request.data.get('item_name'), 
             'brand': request.data.get('brand'),  # foreign key
             'total_quantity': request.data.get('total_quantity'), 
-            'date_added': request.data.get('date_added'), 
             'category': request.data.get('category'), 
             'unit': request.data.get('unit'), 
             'package': request.data.get('package'), 
@@ -55,7 +54,7 @@ class ItemDetailApiView(APIView):
         Helper method to get the object with given item_id
         '''
         try:
-            return Item.objects.get(id=item_id)
+            return Item.objects.get(item_id=item_id)
         except Item.DoesNotExist:
             return None
 
@@ -89,7 +88,6 @@ class ItemDetailApiView(APIView):
             'item_name': request.data.get('item_name'), 
             'brand': request.data.get('brand'), 
             'total_quantity': request.data.get('total_quantity'), 
-            'date_added': request.data.get('date_added'), 
             'category': request.data.get('category'), 
             'unit': request.data.get('unit'), 
             'package': request.data.get('package'), 

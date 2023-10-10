@@ -40,13 +40,13 @@ COPY table_name (column1, column2, ...) FROM 'path/to/your/csv/file.csv' DELIMIT
 
 COPY suppliers (supplier_name, contact_num, discount_rate, created_at, removed)
 FROM 'C:\color_city_db\color_city_db - suppliers.csv'
-DELIMITER ',' CSV HEADER 1;
+DELIMITER ',' CSV HEADER;
 
 COPY brands (supplier_id, brand_name, created_at, removed)
 FROM 'C:\color_city_db\color_city_db - brands.csv'
 DELIMITER ',' CSV HEADER;
 
-COPY items (item_name, brand_id, total_quantity, unit, package, item_price_w_vat, item_price_wo_vat, retail_price, catalyst,  created_at, removed)
+COPY items ( item_number, item_name, brand_id, total_quantity, category, unit, package, item_price_w_vat, item_price_wo_vat, retail_price, catalyst,  created_at, removed)
 FROM 'C:\color_city_db\color_city_db - items.csv'
 DELIMITER ',' CSV HEADER;
 
