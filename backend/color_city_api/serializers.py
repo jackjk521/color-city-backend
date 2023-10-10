@@ -2,6 +2,8 @@ from rest_framework import serializers
 from .models import User, Branch, Item, Brand, Supplier
 
 class UserSerializer(serializers.ModelSerializer):
+    # Adding a field from another table
+    branch_name = serializers.CharField(source='branch.branch_name')
     class Meta:
         model = User
         fields = ["user_id", "branch_id", "user_role", "first_name", "last_name", "age", 
@@ -13,16 +15,22 @@ class BranchSerializer(serializers.ModelSerializer):
         fields = ["branch_id", "branch_name", "address", "created_at", "updated_at", "removed"]
 
 class ItemSerializer(serializers.ModelSerializer):
+    # Adding a field from another table
+    brand_name = serializers.CharField(source='brand.brand_name')
+
     class Meta:
         model = Item
-        fields = ["item_id", "item_number", "item_name", "brand", "total_quantity", "category", 
+        fields = ["item_id", "item_number", "item_name", "brand", "brand_name","total_quantity", "category", 
                   "unit", "package", "item_price_w_vat", "item_price_wo_vat", "retail_price", 
                   "catalyst", "created_at", "updated_at", "removed"]
 
 class BrandSerializer(serializers.ModelSerializer):
+    # Adding a field from another table
+    supplier_name = serializers.CharField(source='supplier.supplier_name')
+
     class Meta:
         model = Brand
-        fields = ["brand_id", "brand_name", "supplier_id", "created_at", "updated_at", "removed"]
+        fields = ["brand_id", "brand_name", "supplier_id", "supplier_name", "created_at", "updated_at", "removed"]
 
 class SupplierSerializer(serializers.ModelSerializer):
     class Meta:
