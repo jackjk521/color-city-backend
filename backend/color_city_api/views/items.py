@@ -26,7 +26,7 @@ class ItemApiView(APIView):
         '''
         data = {
             'item_name': request.data.get('item_name'), 
-            'brand_id': request.data.get('brand_id'), 
+            'brand': request.data.get('brand'),  # foreign key
             'total_quantity': request.data.get('total_quantity'), 
             'date_added': request.data.get('date_added'), 
             'category': request.data.get('category'), 
@@ -87,7 +87,7 @@ class ItemDetailApiView(APIView):
             )
         data = {
             'item_name': request.data.get('item_name'), 
-            'brand_id': request.data.get('brand_id'), 
+            'brand': request.data.get('brand'), 
             'total_quantity': request.data.get('total_quantity'), 
             'date_added': request.data.get('date_added'), 
             'category': request.data.get('category'), 
