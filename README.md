@@ -35,6 +35,8 @@ DROP SCHEMA public CASCADE;
 CREATE SCHEMA public;
 
 ## Moving data from a non sql but CSV file
+# Note: foreign keys have _id attached automatically ie brand = brand_id
+
 
 COPY table_name (column1, column2, ...) FROM 'path/to/your/csv/file.csv' DELIMITER ',' CSV HEADER;
 
@@ -46,9 +48,14 @@ COPY brands (supplier_id, brand_name, created_at, removed)
 FROM 'C:\color_city_db\color_city_db - brands.csv'
 DELIMITER ',' CSV HEADER;
 
-COPY items ( item_number, item_name, brand_id, total_quantity, category, unit, package, item_price_w_vat, item_price_wo_vat, retail_price, catalyst,  created_at, removed)
+COPY items ( item_number, item_name, brand_id, total_quantity, category_id, unit, package, item_price_w_vat, item_price_wo_vat, retail_price, catalyst,  created_at, removed)
 FROM 'C:\color_city_db\color_city_db - items.csv'
 DELIMITER ',' CSV HEADER;
+
+COPY categories (category_name, created_at, removed)
+FROM 'C:\color_city_db\color_city_db - categories.csv'
+DELIMITER ',' CSV HEADER;
+
 
 
 For tables with foreign keys

@@ -88,13 +88,13 @@ class Item(models.Model):
     item_name = models.CharField(max_length = 255, blank = False, null = False)
     brand = models.ForeignKey("Brand", on_delete=models.DO_NOTHING,  blank = False, null = False)
     total_quantity = models.IntegerField(blank = False, null = False)
-    category = models.CharField(max_length = 255, blank = True, null = True)
+    category = models.ForeignKey("Category", on_delete=models.DO_NOTHING,  blank = False, null = False)
     unit = models.IntegerField(blank = False, null = False)
     package = models.CharField(max_length = 255, choices= PACKAGE_CHOICES , default= GALLONS , blank = False, null = False)
     item_price_w_vat = models.DecimalField(max_digits= 20, decimal_places=2, blank = False, null = False)
     item_price_wo_vat = models.DecimalField(max_digits= 20, decimal_places=2, blank = False, null = False)
     retail_price = models.DecimalField(max_digits= 20, decimal_places=2, blank = True, null = True)
-    catalyst = models.BooleanField(default=False, blank = False, null = False)
+    catalyst = models.IntegerField(default= 0, blank = False, null = False)
     created_at = models.DateTimeField(auto_now_add = True, auto_now = False, blank = True, null = True)
     updated_at = models.DateTimeField(auto_now = True, blank = True, null = True)
     removed = models.BooleanField(default=False, blank = True, null = True)
@@ -113,7 +113,32 @@ class Item(models.Model):
             else:
                 self.item_id = 1
             super().save(*args, **kwargs)
-        
+
+# Category Model
+class Category(models.Model):
+    # Fields of your model
+    category_id = models.BigAutoField(primary_key=True, unique=True)
+    category_name = models.CharField(max_length = 255, blank = False, null = False)
+    created_at = models.DateTimeField(auto_now_add = True, auto_now = False, blank = True, null = True)
+    updated_at = models.DateTimeField(auto_now = True, blank = True, null = True)
+    removed = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = 'categories'
+
+    def __str__(self):
+        return self.category_name
+    
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            last_object = Category.objects.select_for_update().order_by('-category_id').first()
+            if last_object:     
+                self.category_id = last_object.category_id + 1
+            else:
+                self.category_id = 1
+            super().save(*args, **kwargs)
+
+
 # Brand Model
 class Brand(models.Model):
     # Fields of your model

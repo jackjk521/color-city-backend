@@ -2,27 +2,27 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import permissions
-from ..models import Item
-from ..serializers import ItemSerializer
+from ..models import Brand
+from ..serializers import BrandSerializer
 
-# Item 
-class ItemApiView(APIView):
+# Brand 
+class BrandApiView(APIView):
     # add permission to check if user is authenticated
     # permission_classes = [permissions.IsAuthenticated]
 
     # 1. List all (get all)
     def get(self, request, *args, **kwargs):
         '''
-        List all the items
+        List all the brands
         '''
-        items = Item.objects.filter(removed = False)
-        serializer = ItemSerializer(items, many=True)
+        brands = Brand.objects.filter(removed = False)
+        serializer = BrandSerializer(brands, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     # 2. Create
     def post(self, request, *args, **kwargs):
         '''
-        Create the Item with given Item Data
+        Create the Brand with given Brand Data
         '''
         data = {
             'item_name': request.data.get('item_name'), 
@@ -37,14 +37,14 @@ class ItemApiView(APIView):
             'catalyst': request.data.get('catalyst'), # not a foreign key but will hold the item_id of the catalyst
         }
 
-        serializer = ItemSerializer(data=data)
+        serializer = BrandSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class ItemDetailApiView(APIView):
+class BrandDetailApiView(APIView):
 
     # add permission to check if user is authenticated
     # permission_classes = [permissions.IsAuthenticated]
@@ -54,34 +54,34 @@ class ItemDetailApiView(APIView):
         Helper method to get the object with given item_id
         '''
         try:
-            return Item.objects.get(item_id=item_id)
-        except Item.DoesNotExist:
+            return Brand.objects.get(item_id=item_id)
+        except Brand.DoesNotExist:
             return None
 
     # 3. Get Specific 
     def get(self, request, item_id, *args, **kwargs):
         '''
-        Retrieves the Item with given item_id
+        Retrieves the Brand with given item_id
         '''
         item_instance = self.get_object(item_id)
         if not item_instance:
             return Response(
-                {"res": "Item with Item id does not exists"},
+                {"res": "Brand with Brand id does not exists"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        serializer = ItemSerializer(item_instance)
+        serializer = BrandSerializer(item_instance)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     # 4. Update
     def put(self, request, item_id, *args, **kwargs):
         '''
-        Updates the Item item with given item_id if exists
+        Updates the Brand item with given item_id if exists
         '''
         item_instance = self.get_object(item_id)
         if not item_instance:
             return Response(
-                {"res": "Object with Item id does not exists"}, 
+                {"res": "Object with Brand id does not exists"}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
         data = {
@@ -96,7 +96,7 @@ class ItemDetailApiView(APIView):
             'retail_price': request.data.get('retail_price'), 
             'catalyst': request.data.get('catalyst'), 
         }
-        serializer = ItemSerializer(instance = item_instance, data=data, partial = True)
+        serializer = BrandSerializer(instance = item_instance, data=data, partial = True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -105,12 +105,12 @@ class ItemDetailApiView(APIView):
     # 5. Delete
     def delete(self, request, item_id, *args, **kwargs):
         '''
-        Deletes the Item item with given item_id if exists
+        Deletes the Brand item with given item_id if exists
         '''
         item_instance = self.get_object(item_id)
         if not item_instance:
             return Response(
-                {"res": "Object with Item id does not exists"}, 
+                {"res": "Object with Brand id does not exists"}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
         item_instance.delete()
@@ -121,12 +121,12 @@ class ItemDetailApiView(APIView):
     
     def soft_delete(self, request, item_id, *args, **kwargs):
         '''
-        Soft deletes the Item with the given item_id if it exists
+        Soft deletes the Brand with the given item_id if it exists
         '''
         item_instance = self.get_object(item_id)
         if not item_instance:
             return Response(
-                {"res": "Object with Item id does not exist"},
+                {"res": "Object with Brand id does not exist"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 

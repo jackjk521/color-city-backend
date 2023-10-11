@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Branch, Item, Brand, Supplier
+from .models import User, Branch, Item, Category, Brand, Supplier
 
 class UserSerializer(serializers.ModelSerializer):
     # Adding a field from another table
@@ -17,12 +17,18 @@ class BranchSerializer(serializers.ModelSerializer):
 class ItemSerializer(serializers.ModelSerializer):
     # Adding a field from another table
     brand_name = serializers.CharField(source='brand.brand_name')
+    category_name = serializers.CharField(source='category.category_name')
 
     class Meta:
         model = Item
         fields = ["item_id", "item_number", "item_name", "brand", "brand_name","total_quantity", "category", 
-                  "unit", "package", "item_price_w_vat", "item_price_wo_vat", "retail_price", 
+                  "category_name", "unit", "package", "item_price_w_vat", "item_price_wo_vat", "retail_price", 
                   "catalyst", "created_at", "updated_at", "removed"]
+        
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ["category_id", "category_name", "created_at", "updated_at", "removed"]
 
 class BrandSerializer(serializers.ModelSerializer):
     # Adding a field from another table

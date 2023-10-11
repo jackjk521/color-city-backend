@@ -6,6 +6,9 @@ from django.urls import path, include
 # )
 
 from .views.items import ItemApiView, ItemDetailApiView
+from .views.brands import BrandApiView, BrandDetailApiView
+from .views.categories import CategoryApiView, CategoryDetailApiView
+
 
 # urlpatterns = [
 #     path('api', TodoListApiView.as_view()),
@@ -15,5 +18,13 @@ from .views.items import ItemApiView, ItemDetailApiView
 urlpatterns = [
     # Items
     path('api/items', ItemApiView.as_view()),
-    path('api/item/<int:item_id>/', ItemDetailApiView.as_view()),    
+    path('api/item/<int:item_id>/', ItemDetailApiView.as_view()),  
+
+    # Brands
+    path('api/brands', BrandApiView.as_view()),
+    path('api/brand/<int:brand_id>/', BrandDetailApiView.as_view()), 
+
+    # Categories
+    path('api/categories', CategoryApiView.as_view()),
+    path('api/category/<int:category_id>/', CategoryDetailApiView.as_view()), 
 ]

@@ -2,27 +2,27 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import permissions
-from ..models import Item
-from ..serializers import ItemSerializer
+from ..models import Category
+from ..serializers import CategorySerializer
 
-# Item 
-class ItemApiView(APIView):
+# Category 
+class CategoryApiView(APIView):
     # add permission to check if user is authenticated
     # permission_classes = [permissions.IsAuthenticated]
 
     # 1. List all (get all)
     def get(self, request, *args, **kwargs):
         '''
-        List all the items
+        List all the categories
         '''
-        items = Item.objects.filter(removed = False)
-        serializer = ItemSerializer(items, many=True)
+        categories = Category.objects.filter(removed = False)
+        serializer = CategorySerializer(categories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    # 2. Create
+    # 2. Create 
     def post(self, request, *args, **kwargs):
         '''
-        Create the Item with given Item Data
+        Create the Category with given Category Data
         '''
         data = {
             'item_name': request.data.get('item_name'), 
@@ -37,51 +37,51 @@ class ItemApiView(APIView):
             'catalyst': request.data.get('catalyst'), # not a foreign key but will hold the item_id of the catalyst
         }
 
-        serializer = ItemSerializer(data=data)
+        serializer = CategorySerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class ItemDetailApiView(APIView):
+class CategoryDetailApiView(APIView):
 
     # add permission to check if user is authenticated
     # permission_classes = [permissions.IsAuthenticated]
 
-    def get_object(self, item_id):
+    def get_object(self, category_id):
         '''
-        Helper method to get the object with given item_id
+        Helper method to get the object with given category_id
         '''
         try:
-            return Item.objects.get(item_id=item_id)
-        except Item.DoesNotExist:
+            return Category.objects.get(category_id=category_id)
+        except Category.DoesNotExist:
             return None
 
     # 3. Get Specific 
-    def get(self, request, item_id, *args, **kwargs):
+    def get(self, request, category_id, *args, **kwargs):
         '''
-        Retrieves the Item with given item_id
+        Retrieves the Category with given category_id
         '''
-        item_instance = self.get_object(item_id)
-        if not item_instance:
+        category_instance = self.get_object(category_id)
+        if not category_instance:
             return Response(
-                {"res": "Item with Item id does not exists"},
+                {"res": "Category with Category id does not exists"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        serializer = ItemSerializer(item_instance)
+        serializer = CategorySerializer(category_instance)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     # 4. Update
-    def put(self, request, item_id, *args, **kwargs):
+    def put(self, request, category_id, *args, **kwargs):
         '''
-        Updates the Item item with given item_id if exists
+        Updates the Category category with given category_id if exists
         '''
-        item_instance = self.get_object(item_id)
-        if not item_instance:
+        category_instance = self.get_object(category_id)
+        if not category_instance:
             return Response(
-                {"res": "Object with Item id does not exists"}, 
+                {"res": "Object with Category id does not exists"}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
         data = {
@@ -96,7 +96,7 @@ class ItemDetailApiView(APIView):
             'retail_price': request.data.get('retail_price'), 
             'catalyst': request.data.get('catalyst'), 
         }
-        serializer = ItemSerializer(instance = item_instance, data=data, partial = True)
+        serializer = CategorySerializer(instance = item_instance, data=data, partial = True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -105,12 +105,12 @@ class ItemDetailApiView(APIView):
     # 5. Delete
     def delete(self, request, item_id, *args, **kwargs):
         '''
-        Deletes the Item item with given item_id if exists
+        Deletes the Category item with given item_id if exists
         '''
         item_instance = self.get_object(item_id)
         if not item_instance:
             return Response(
-                {"res": "Object with Item id does not exists"}, 
+                {"res": "Object with Category id does not exists"}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
         item_instance.delete()
@@ -121,12 +121,12 @@ class ItemDetailApiView(APIView):
     
     def soft_delete(self, request, item_id, *args, **kwargs):
         '''
-        Soft deletes the Item with the given item_id if it exists
+        Soft deletes the Category with the given item_id if it exists
         '''
         item_instance = self.get_object(item_id)
         if not item_instance:
             return Response(
-                {"res": "Object with Item id does not exist"},
+                {"res": "Object with Category id does not exist"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
