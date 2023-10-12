@@ -16,8 +16,8 @@ class BranchSerializer(serializers.ModelSerializer):
 
 class ItemSerializer(serializers.ModelSerializer):
     # Adding a field from another table
-    brand_name = serializers.CharField(source='brand.brand_name')
-    category_name = serializers.CharField(source='category.category_name')
+    brand_name = serializers.CharField(source='brand.brand_name', required=False)
+    category_name = serializers.CharField(source='category.category_name',  required=False)
 
     class Meta:
         model = Item

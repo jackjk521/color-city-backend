@@ -3,7 +3,13 @@ from django.db import models, transaction
 
 # Helper Functions
 def generate_product_number():
-    return f"PN-{Item.objects.count() + 1:010d}"
+    last_item = Item.objects.order_by('-item_id').first()
+    if last_item:
+        last_item_number = int(last_item.item_number.split('-')[1])
+        new_item_number = f"PN-{last_item_number + 1:010d}"
+    else:
+        new_item_number = "PN-000000001"
+    return new_item_number
 # :010d (padding 10 digits max)
 
 # Create your models here.
