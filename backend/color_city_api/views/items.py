@@ -131,51 +131,6 @@ class ItemDetailApiView(APIView):
                 return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400__BAD_REQUEST)
                         
-    # def put(self, request, item_id, *args, **kwargs):
-    #     '''
-    #     Updates the Item item with given item_id if exists
-    #     '''
-    #     item_instance = self.get_object(item_id)
-    #     if not item_instance:
-    #         return Response(
-    #             {"res": "Object with Item id does not exists"}, 
-    #             status=status.HTTP_400_BAD_REQUEST
-    #         )
-    #     data = {
-    #         'item_name': request.data.get('item_name'), 
-    #         'brand': request.data.get('brand'), 
-    #         'total_quantity': request.data.get('total_quantity'), 
-    #         'category': request.data.get('category'), 
-    #         'unit': request.data.get('unit'), 
-    #         'package': request.data.get('package'), 
-    #         'item_price_w_vat': request.data.get('item_price_w_vat'), 
-    #         'item_price_wo_vat': request.data.get('item_price_wo_vat'), 
-    #         'retail_price': request.data.get('retail_price'), 
-    #         'catalyst': request.data.get('catalyst'), 
-    #     }
-    #     serializer = ItemSerializer(instance = item_instance, data=data, partial = True)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(serializer.data, status=status.HTTP_200_OK)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-        #    # Serialize the existing data
-        # serializer = ItemSerializer(item_instance, data=request.data)
-        # serializer.is_valid(raise_exception=True)
-
-        # # Check if the unique fields are being changed
-        # if 'item_number' in serializer.validated_data:
-        #     new_item_number = serializer.validated_data['item_number']
-        #     if Item.objects.exclude(pk=item_instance.pk).filter(item_number=new_item_number).exists():
-        #         return Response(
-        #             {"res": "Item with the specified item_number already exists"},
-        #             status=status.HTTP_400_BAD_REQUEST
-        #         )
-
-        # # Save and return the updated instance
-        # serializer.save()
-        # return Response(serializer.data, status=status.HTTP_200_OK)
-
     # 5. Delete
     def delete(self, request, item_id, *args, **kwargs):
         '''

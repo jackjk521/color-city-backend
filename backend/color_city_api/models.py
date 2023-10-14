@@ -71,19 +71,6 @@ class Branch(models.Model):
 
 # Item Model
 class Item(models.Model):
-    # Constants
-    LITER = "L"
-    PIECE = "PC"
-    PIECES = "PCS"
-    GALLONS = "GL"
-
-    PACKAGE_CHOICES = [
-        (LITER, "Liter"),
-        (PIECE, "Piece"),
-        (PIECES, "Pieces"),
-        (GALLONS, "Gallons"),
-    ]
-
     # Fields of your model
     item_id =  models.BigAutoField(primary_key=True, unique=True)
     item_number = models.CharField(     
@@ -96,7 +83,7 @@ class Item(models.Model):
     total_quantity = models.IntegerField(blank = False, null = False)
     category = models.ForeignKey("Category", on_delete=models.DO_NOTHING,  blank = False, null = False)
     unit = models.IntegerField(blank = False, null = False)
-    package = models.CharField(max_length = 255, choices= PACKAGE_CHOICES , default= GALLONS , blank = False, null = False)
+    package = models.CharField(max_length = 255, blank = False, null = False)
     item_price_w_vat = models.DecimalField(max_digits= 20, decimal_places=2, blank = False, null = False)
     item_price_wo_vat = models.DecimalField(max_digits= 20, decimal_places=2, blank = False, null = False)
     retail_price = models.DecimalField(max_digits= 20, decimal_places=2, blank = True, null = True)

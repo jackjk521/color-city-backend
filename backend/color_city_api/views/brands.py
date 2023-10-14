@@ -15,7 +15,7 @@ class BrandApiView(APIView):
         '''
         List all the brands
         '''
-        brands = Brand.objects.filter(removed = False)
+        brands = Brand.objects.filter(removed = False).order_by('brand_id')
         serializer = BrandSerializer(brands, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -25,16 +25,8 @@ class BrandApiView(APIView):
         Create the Brand with given Brand Data
         '''
         data = {
-            'item_name': request.data.get('item_name'), 
-            'brand': request.data.get('brand'),  # foreign key
-            'total_quantity': request.data.get('total_quantity'), 
-            'category': request.data.get('category'), # foreign key
-            'unit': request.data.get('unit'), 
-            'package': request.data.get('package'), 
-            'item_price_w_vat': request.data.get('item_price_w_vat'), 
-            'item_price_wo_vat': request.data.get('item_price_wo_vat'), 
-            'retail_price': request.data.get('retail_price'), 
-            'catalyst': request.data.get('catalyst'), # not a foreign key but will hold the item_id of the catalyst
+            'brand_name': request.data.get('brand_name'), 
+            'supplier': request.data.get('supplier'),  # foreign key
         }
 
         serializer = BrandSerializer(data=data)
@@ -49,89 +41,95 @@ class BrandDetailApiView(APIView):
     # add permission to check if user is authenticated
     # permission_classes = [permissions.IsAuthenticated]
 
-    def get_object(self, item_id):
+    def get_object(self, brand_id):
         '''
         Helper method to get the object with given item_id
         '''
         try:
-            return Brand.objects.get(item_id=item_id)
+            return Brand.objects.get(brand_id=brand_id)
         except Brand.DoesNotExist:
             return None
 
     # 3. Get Specific 
-    def get(self, request, item_id, *args, **kwargs):
+    def get(self, request, brand_id, *args, **kwargs):
         '''
-        Retrieves the Brand with given item_id
+        Retrieves the Brand with given brand_id
         '''
-        item_instance = self.get_object(item_id)
-        if not item_instance:
+        brand_instance = self.get_object(brand_id)
+        if not brand_instance:
             return Response(
                 {"res": "Brand with Brand id does not exists"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        serializer = BrandSerializer(item_instance)
+        serializer = BrandSerializer(brand_instance)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     # 4. Update
-    def put(self, request, item_id, *args, **kwargs):
+    def put(self, request, brand_id,  *args, **kwargs):
         '''
-        Updates the Brand item with given item_id if exists
+        Updates the Brand with given brand_id if exists
         '''
-        item_instance = self.get_object(item_id)
-        if not item_instance:
+        brand_instance = self.get_object(brand_id)
+        if not brand_instance:
             return Response(
-                {"res": "Object with Brand id does not exists"}, 
+                {"res": "Object with Item id does not exists"}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
+           
         data = {
-            'item_name': request.data.get('item_name'), 
-            'brand': request.data.get('brand'), 
-            'total_quantity': request.data.get('total_quantity'), 
-            'category': request.data.get('category'), 
-            'unit': request.data.get('unit'), 
-            'package': request.data.get('package'), 
-            'item_price_w_vat': request.data.get('item_price_w_vat'), 
-            'item_price_wo_vat': request.data.get('item_price_wo_vat'), 
-            'retail_price': request.data.get('retail_price'), 
-            'catalyst': request.data.get('catalyst'), 
+            'brand_name': request.data.get('brand_name'), 
+            'supplier': request.data.get('supplier'),  
         }
-        serializer = BrandSerializer(instance = item_instance, data=data, partial = True)
+
+        serializer = BrandSerializer(instance = brand_instance, data=data, partial = True)
+
         if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            # Update the fields of the brand object
+                brand_instance.brand_name = serializer.validated_data['brand_name']
+                brand_instance.supplier = serializer.validated_data['supplier']
+
+                # Call the update() method on the queryset to update the item
+                Brand.objects.filter(brand_id=brand_id).update(
+                    brand_name=brand_instance.brand_name,
+                    supplier=brand_instance.supplier,
+                
+                    # Update other fields as needed
+                )
+
+                return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400__BAD_REQUEST)
 
     # 5. Delete
-    def delete(self, request, item_id, *args, **kwargs):
+    def delete(self, request, brand_id, *args, **kwargs):
         '''
-        Deletes the Brand item with given item_id if exists
+        Deletes the Brand with given brand_id if exists
         '''
-        item_instance = self.get_object(item_id)
-        if not item_instance:
+        brand_instance = self.get_object(brand_id)
+        if not brand_instance:
             return Response(
                 {"res": "Object with Brand id does not exists"}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
-        item_instance.delete()
+        brand_instance.delete()
         return Response(
             {"res": "Object deleted!"},
             status=status.HTTP_200_OK
         )
     
-    def soft_delete(self, request, item_id, *args, **kwargs):
+    def soft_delete(self, request, brand_id, *args, **kwargs):
         '''
-        Soft deletes the Brand with the given item_id if it exists
+        Soft deletes the Brand with the given brand_id if it exists
         '''
-        item_instance = self.get_object(item_id)
-        if not item_instance:
+        brand_instance = self.get_object(brand_id)
+        if not brand_instance:
             return Response(
                 {"res": "Object with Brand id does not exist"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        item_instance.removed = True  # Update the "removed" column to True
-        item_instance.save()
+        brand_instance.removed = True  # Update the "removed" column to True
+        brand_instance.save()
 
         return Response(
             {"res": "Object soft deleted!"},

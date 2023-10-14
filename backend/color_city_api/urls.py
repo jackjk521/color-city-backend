@@ -1,9 +1,4 @@
 from django.urls import path, include
-# from .views import (
-    
-#     TodoListApiView,
-#     TodoDetailApiView
-# )
 
 from .views.items import ItemApiView, ItemDetailApiView, GenerateItemNumberView
 from .views.brands import BrandApiView, BrandDetailApiView
