@@ -59,6 +59,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# Custom AUthentication
+AUTH_USER_MODEL = 'color_city_api.User'
+
 # CORS
 CORS_ALLOWED_ORIGINS = [
     'http://*',

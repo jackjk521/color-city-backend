@@ -1,4 +1,5 @@
 from django.db import models, transaction
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 # from django.contrib.auth.models import User
 
 # Helper Functions
@@ -15,10 +16,11 @@ def generate_product_number():
 # Create your models here.
 
 # User Model
-class User(models.Model):
+class User(AbstractBaseUser, PermissionsMixin):
     # Fields of your model
     user_id = models.BigAutoField(primary_key=True, unique=True)
     branch = models.ForeignKey("Branch", on_delete=models.DO_NOTHING,  blank = False, null = False)
+    username = models.CharField(unique= True, max_length = 100, blank = False, null = False)
     user_role = models.CharField(max_length = 100, blank = False, null = False)
     first_name = models.CharField(max_length = 255, blank = False, null = False)
     last_name = models.CharField(max_length = 255, blank = False, null = False)
@@ -26,6 +28,9 @@ class User(models.Model):
     created_at = models.DateTimeField(auto_now_add = True, auto_now = False, blank = True, null = True)
     updated_at = models.DateTimeField(auto_now = True, blank = True, null = True)
     removed = models.BooleanField(default=False, blank = True, null = True)
+
+    USERNAME_FIELD = 'username'
+    REQUIRED_FIELDS = ['first_name', 'last_name', 'branch']
 
     class Meta:
         db_table = 'users'

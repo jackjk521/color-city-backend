@@ -6,7 +6,7 @@ class UserSerializer(serializers.ModelSerializer):
     branch_name = serializers.CharField(source='branch.branch_name')
     class Meta:
         model = User
-        fields = ["user_id", "branch_id", "brand_name", "user_role", "first_name", "last_name", "age", 
+        fields = ["user_id", "branch_id", "branch_name", "user_role", "first_name", "last_name", "age", 
                   "created_at", "updated_at", "removed"]
 
 class BranchSerializer(serializers.ModelSerializer):

@@ -56,6 +56,14 @@ COPY categories (category_name, created_at, removed)
 FROM 'C:\color_city_db\color_city_db - categories.csv'
 DELIMITER ',' CSV HEADER;
 
+COPY users (branch_id, user_role, first_name, last_name, age,  created_at, removed)
+FROM 'C:\color_city_db\color_city_db - users.csv'
+DELIMITER ',' CSV HEADER;
+
+COPY branches (branch_name, address, created_at, removed)
+FROM 'C:\color_city_db\color_city_db - branches.csv'
+DELIMITER ',' CSV HEADER;
+
 
 
 For tables with foreign keys
