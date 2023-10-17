@@ -73,7 +73,7 @@ class BrandDetailApiView(APIView):
         brand_instance = self.get_object(brand_id)
         if not brand_instance:
             return Response(
-                {"res": "Object with Item id does not exists"}, 
+                {"res": "Object with brand id does not exists"}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
            

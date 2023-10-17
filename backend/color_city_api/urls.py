@@ -28,7 +28,7 @@ urlpatterns = [
     path('api/supplier/<int:supplier_id>/', SupplierDetailApiView.as_view()),  
 
     # Items
-    path('api/items', ItemApiView.as_view()),
+    path('api/items/', ItemApiView.as_view()),
     path('api/gen_item_number', GenerateItemNumberView.as_view()),
     path('api/item/<int:item_id>/', ItemDetailApiView.as_view()),  
 

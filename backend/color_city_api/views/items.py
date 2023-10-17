@@ -16,7 +16,13 @@ class ItemApiView(APIView):
         '''
         List all the items
         '''
+        category = request.query_params.get('category')
+
         items = Item.objects.filter(removed = False).order_by('item_id')
+
+        if category:
+            items = items.filter(category_id = category) 
+
         serializer = ItemSerializer(items, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 

@@ -32,13 +32,13 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class BrandSerializer(serializers.ModelSerializer):
     # Adding a field from another table
-    supplier_name = serializers.CharField(source='supplier.supplier_name')
+    supplier_name = serializers.CharField(source='supplier.supplier_name', required=False)
 
     class Meta:
         model = Brand
-        fields = ["brand_id", "brand_name", "supplier_id", "supplier_name", "created_at", "updated_at", "removed"]
+        fields = ["brand_id", "brand_name", "supplier", "supplier_name", "created_at", "updated_at", "removed"]
 
 class SupplierSerializer(serializers.ModelSerializer):
     class Meta:
         model = Supplier
-        fields = ["supplier_id","supplier_name", "contact_num", "created_at", "updated_at", "removed"]
+        fields = ["supplier_id","supplier_name", "contact_num", "discount_rate", "created_at", "updated_at", "removed"]
