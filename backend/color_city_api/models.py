@@ -187,3 +187,89 @@ class Supplier(models.Model):
             else:
                 self.supplier_id = 1
             super().save(*args, **kwargs)
+
+# Inventory Model
+class Inventory(models.Model):
+    # Fields of your model
+    inventory_id = models.BigAutoField(primary_key=True, unique=True)
+    item = models.ForeignKey("Item", on_delete=models.DO_NOTHING,  blank = False, null = False)
+    branch = models.ForeignKey("Branch", on_delete=models.DO_NOTHING,  blank = False, null = False)
+    total_quantity = models.IntegerField(blank=False, null=False)
+    holding_cost = models.DecimalField(max_digits= 100, decimal_places=2, blank = True, null = True)
+    created_at = models.DateTimeField(auto_now_add = True, auto_now = False, blank = True, null = True)
+    updated_at = models.DateTimeField(auto_now = True, blank = True, null = True)
+    removed = models.BooleanField(default=False, blank = True, null = True)
+
+    class Meta:
+        db_table = 'inventory'
+
+    def __str__(self):
+        return self.inventory_id
+    
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            last_object = Inventory.objects.select_for_update().order_by('-inventory_id').first()
+            if last_object:     
+                self.inventory_id = last_object.inventory_id + 1
+            else:
+                self.inventory_id = 1
+            super().save(*args, **kwargs)
+
+# Purchase Header Model
+class PurchaseHeader(models.Model):
+    # Fields of your model
+    purchase_header_id = models.BigAutoField(primary_key=True, unique=True)
+    branch = models.ForeignKey("Branch", on_delete=models.DO_NOTHING,  blank = False, null = False)
+    user = models.ForeignKey("User", on_delete=models.DO_NOTHING,  blank = False, null = False)
+    transaction_type = models.CharField(max_length=100, blank=False, null=False) # branch or supplier
+    total_amount = models.DecimalField(max_digits= 100, decimal_places=2,  blank = False, null = False)
+    payment_mode = models.CharField(max_length=100, blank=False, null=False) # cash or check
+    posted_status = models.CharField(max_length=100, default="UNPOSTED",  blank=False, null=False) # unposted by default and if posted (goes to approval status)
+    received_status = models.CharField(max_length=100, default="PENDING",  blank=False, null=False) # pending by default but can be received or not received
+    approval_status = models.CharField(max_length=100, default="PENDING",  blank=False, null=False) # pending by default but can be approved or disapproved
+    created_at = models.DateTimeField(auto_now_add = True, auto_now = False, blank = True, null = True)
+    updated_at = models.DateTimeField(auto_now = True, blank = True, null = True)
+    removed = models.BooleanField(default=False, blank = True, null = True)
+
+    class Meta:
+        db_table = 'purchase_headers'
+
+    def __str__(self):
+        return self.purchase_header_id
+    
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            last_object = PurchaseHeader.objects.select_for_update().order_by('-purchase_header_id').first()
+            if last_object:     
+                self.purchase_header_id = last_object.purchase_header_id + 1
+            else:
+                self.purchase_header_id = 1
+            super().save(*args, **kwargs)
+
+# Purchase Line  Model
+class PurchaseLine(models.Model):
+    # Fields of your model
+    purchase_line_id = models.BigAutoField(primary_key=True, unique=True)
+    purchase_header = models.ForeignKey("PurchaseHeader", on_delete=models.DO_NOTHING,  blank = False, null = False)
+    item = models.ForeignKey("Item", on_delete=models.DO_NOTHING,  blank = False, null = False)
+    req_quantity = models.IntegerField(blank=False, null=False)
+    subtotal = models.DecimalField(max_digits= 100, decimal_places=2,  blank = False, null = False)
+    status = models.CharField(max_length=100, default="NONE",  blank=False, null=False) # none by default but can be return or damaged (TBD)
+    created_at = models.DateTimeField(auto_now_add = True, auto_now = False, blank = True, null = True)
+    updated_at = models.DateTimeField(auto_now = True, blank = True, null = True)
+    removed = models.BooleanField(default=False, blank = True, null = True)
+
+    class Meta:
+        db_table = 'purchase_lines'
+
+    def __str__(self):
+        return self.purchase_line_id
+    
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            last_object = PurchaseLine.objects.select_for_update().order_by('-purchase_line_id').first()
+            if last_object:     
+                self.purchase_line_id = last_object.purchase_line_id + 1
+            else:
+                self.purchase_line_id = 1
+            super().save(*args, **kwargs)

@@ -6,8 +6,9 @@ from .views.categories import CategoryApiView, CategoryDetailApiView
 from .views.users import  UserAuthApiView, UserApiView, UserDetailApiView
 from .views.branches import BranchApiView, BranchDetailApiView
 from .views.suppliers import SupplierApiView, SupplierDetailApiView
-
-
+from .views.inventory import InventoryApiView, InventoryDetailApiView
+from .views.purchaseHeaders import PurchaseHeaderApiView, PurchaseHeaderDetailApiView
+from .views.purchaseLines import PurchaseLineApiView, PurchaseLineDetailApiView
 
 # urlpatterns = [
 #     path('api', TodoListApiView.as_view()),
@@ -40,4 +41,16 @@ urlpatterns = [
     # Categories
     path('api/categories', CategoryApiView.as_view()),
     path('api/category/<int:category_id>/', CategoryDetailApiView.as_view()), 
+
+    # Inventory
+    path('api/inventory', InventoryApiView.as_view()),
+    path('api/inventory/<int:inventory_id>/', InventoryDetailApiView.as_view()),  
+
+    # Purchase Headers
+    path('api/purchase_headers', PurchaseHeaderApiView.as_view()),
+    path('api/purchase_header/<int:purchase_header_id>/', PurchaseHeaderDetailApiView.as_view()),  
+
+    # Purchase Lines
+    path('api/purchase_lines', PurchaseLineApiView.as_view()),
+    path('api/purchase_line/<int:purchase_line_id>/', PurchaseLineDetailApiView.as_view()),  
 ]

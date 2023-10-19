@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Branch, Item, Category, Brand, Supplier
+from .models import User, Branch, Item, Category, Brand, Supplier, Inventory, PurchaseHeader, PurchaseLine
 
 class UserSerializer(serializers.ModelSerializer):
     # Adding a field from another table
@@ -43,3 +43,36 @@ class SupplierSerializer(serializers.ModelSerializer):
     class Meta:
         model = Supplier
         fields = ["supplier_id","supplier_name", "contact_num", "discount_rate", "created_at", "updated_at", "removed"]
+
+class InventorySerializer(serializers.ModelSerializer):
+    # Adding a field from another table
+    item_name = serializers.CharField(source='item.item_name', required=False)
+    branch_name = serializers.CharField(source='branch.branch_name', required=False)
+
+    class Meta:
+        model = Inventory
+        fields = ["inventory_id", "item", "item_name", "branch", "branch_name", "total_quantity",
+                  "holding_cost",  "created_at", "updated_at", "removed"]
+        
+class PurchaseHeaderSerializer(serializers.ModelSerializer):
+    # Adding a field from another table
+    username = serializers.CharField(source='user.username', required=False)
+    branch_name = serializers.CharField(source='branch.branch_name', required=False)
+    post_status = serializers.CharField(source='purchase_header_id.post_status', required=False)
+    received_status = serializers.CharField(source='purchase_header_id.received_status', required=False)
+    approval_status = serializers.CharField(source='purchase_header_id.approval_status', required=False)
+
+    class Meta:
+        model = PurchaseHeader
+        fields = ["purchase_header_id", "branch", "branch_name", "user", "username",  "transaction_type",
+                  "total_amount", "payment_mode", "posted_status", "received_status",  "approval_status", 
+                  "created_at", "updated_at", "removed"]
+        
+class PurchaseLineSerializer(serializers.ModelSerializer):
+    # Adding a field from another table
+    item_name = serializers.CharField(source='item.item_name', required=False)
+    
+    class Meta:
+        model = PurchaseLine
+        fields = ["purchase_line_id", "purchase_header", "item", "item_name",  "req_quantity",
+                  "subtotal", "status", "created_at", "updated_at", "removed"]

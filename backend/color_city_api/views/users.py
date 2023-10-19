@@ -126,7 +126,7 @@ class UserDetailApiView(APIView):
            
         data = {
             'branch': request.data.get('branch'),  # foreign key
-            'user_name': request.data.get('user_name'),
+            'username': request.data.get('username'),
             'password': request.data.get('password'),
             'user_role': request.data.get('user_role'), 
             'first_name': request.data.get('first_name'), 
@@ -139,6 +139,8 @@ class UserDetailApiView(APIView):
         if serializer.is_valid():
             # Update the fields of the item object
                 user_instance.branch = serializer.validated_data['branch']
+                user_instance.username = serializer.validated_data['username']
+                user_instance.password = serializer.validated_data['password']
                 user_instance.user_role = serializer.validated_data['user_role']
                 user_instance.first_name = serializer.validated_data['first_name']
                 user_instance.last_name = serializer.validated_data['last_name']
@@ -147,6 +149,8 @@ class UserDetailApiView(APIView):
                 # Call the update() method on the queryset to update the item
                 User.objects.filter(user_id=user_id).update(
                     branch=user_instance.branch,
+                    username=user_instance.username,
+                    password=user_instance.password,
                     user_role=user_instance.user_role,
                     first_name=user_instance.first_name,
                     last_name= user_instance.last_name,
