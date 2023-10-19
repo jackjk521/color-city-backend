@@ -1,15 +1,56 @@
+import bcrypt
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework import permissions
 from ..models import User
 from ..serializers import UserSerializer
 from django.shortcuts import get_object_or_404
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import IsAuthenticated
+
 
 # User 
-class UserApiView(APIView):
+class UserAuthApiView(APIView):
     # add permission to check if user is authenticated
     # permission_classes = [permissions.IsAuthenticated]
+
+    # 1. Get valid user
+    def post(self, request, *args, **kwargs):
+        '''
+        Get user with valid credentials
+        '''
+        username = request.data.get('username')
+        password = request.data.get('password')
+
+        try:
+            user = User.objects.get(username=username)
+            user_data = {
+                'user_id': user.user_id,
+                'username': user.username,
+                'password': user.password,
+                'user_role': user.user_role,
+                'branch_id': user.branch,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'age': user.age,
+                # Include any other desired user data
+            }
+            serializer = UserSerializer(data=user_data)
+            if serializer.is_valid():
+                # Check if the provided password matches the stored password
+                if user.password != password:  # Assuming the password is stored as plain text
+                    return Response({'message': 'Login failed'}, status=status.HTTP_400_BAD_REQUEST)
+
+        except User.DoesNotExist:
+            return Response({'message': 'Login failed'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    
+class UserApiView(APIView):
+    # add permission to check if user is authenticated
+    # permission_classes = [IsAuthenticated]
+    # authentication_classes = [SessionAuthentication]
 
     # 1. List all (get all)
     def get(self, request, *args, **kwargs):
@@ -27,6 +68,8 @@ class UserApiView(APIView):
         '''
         data = {
             'branch': request.data.get('branch'),  # foreign key
+            'username': request.data.get('username'),
+            'password': request.data.get('password'),
             'user_role': request.data.get('user_role'), 
             'first_name': request.data.get('first_name'), 
             'last_name': request.data.get('last_name'), 
@@ -83,6 +126,8 @@ class UserDetailApiView(APIView):
            
         data = {
             'branch': request.data.get('branch'),  # foreign key
+            'user_name': request.data.get('user_name'),
+            'password': request.data.get('password'),
             'user_role': request.data.get('user_role'), 
             'first_name': request.data.get('first_name'), 
             'last_name': request.data.get('last_name'), 

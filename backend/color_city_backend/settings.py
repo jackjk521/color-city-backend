@@ -93,6 +93,11 @@ CORS_ALLOWED_HEADERS = [
 
 ROOT_URLCONF = 'color_city_backend.urls'
 
+# Sessions
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_AGE = 86400
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

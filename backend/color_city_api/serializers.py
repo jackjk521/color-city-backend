@@ -3,10 +3,11 @@ from .models import User, Branch, Item, Category, Brand, Supplier
 
 class UserSerializer(serializers.ModelSerializer):
     # Adding a field from another table
-    branch_name = serializers.CharField(source='branch.branch_name')
+    branch_name = serializers.CharField(source='branch.branch_name', required=False)
+    # Exlcuded the password ?
     class Meta:
         model = User
-        fields = ["user_id", "branch_id", "branch_name", "user_role", "first_name", "last_name", "age", 
+        fields = ["user_id", "branch", "branch_name", "username",  "password",  "user_role", "first_name", "last_name", "age",
                   "created_at", "updated_at", "removed"]
 
 class BranchSerializer(serializers.ModelSerializer):
