@@ -21,6 +21,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     user_id = models.BigAutoField(primary_key=True, unique=True)
     branch = models.ForeignKey("Branch", on_delete=models.DO_NOTHING,  blank = False, null = False)
     username = models.CharField(unique= True, max_length = 100, blank = False, null = False)
+    password = models.CharField(max_length = 255, blank = False, null = False)
     user_role = models.CharField(max_length = 100, blank = False, null = False)
     first_name = models.CharField(max_length = 255, blank = False, null = False)
     last_name = models.CharField(max_length = 255, blank = False, null = False)

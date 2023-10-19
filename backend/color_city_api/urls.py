@@ -3,7 +3,7 @@ from django.urls import path, include
 from .views.items import ItemApiView, ItemDetailApiView, GenerateItemNumberView
 from .views.brands import BrandApiView, BrandDetailApiView
 from .views.categories import CategoryApiView, CategoryDetailApiView
-from .views.users import UserApiView, UserDetailApiView
+from .views.users import  UserAuthApiView, UserApiView, UserDetailApiView
 from .views.branches import BranchApiView, BranchDetailApiView
 from .views.suppliers import SupplierApiView, SupplierDetailApiView
 
@@ -17,6 +17,7 @@ from .views.suppliers import SupplierApiView, SupplierDetailApiView
 urlpatterns = [
      # Users
     path('api/users', UserApiView.as_view()),
+    path('api/auth_user/',  UserAuthApiView.as_view()),
     path('api/user/<int:user_id>/', UserDetailApiView.as_view()),  
 
      # Branches
