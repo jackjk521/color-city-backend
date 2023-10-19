@@ -43,8 +43,8 @@ urlpatterns = [
     path('api/category/<int:category_id>/', CategoryDetailApiView.as_view()), 
 
     # Inventory
-    path('api/inventory', InventoryApiView.as_view()),
-    path('api/inventory/<int:inventory_id>/', InventoryDetailApiView.as_view()),  
+    path('api/inventory/', InventoryApiView.as_view()),
+    path('api/inv/<int:inventory_id>/', InventoryDetailApiView.as_view()),  
 
     # Purchase Headers
     path('api/purchase_headers', PurchaseHeaderApiView.as_view()),

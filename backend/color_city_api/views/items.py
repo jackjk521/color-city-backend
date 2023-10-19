@@ -34,7 +34,6 @@ class ItemApiView(APIView):
         data = {
             'item_name': request.data.get('item_name'), 
             'brand': request.data.get('brand'),  # foreign key
-            'total_quantity': request.data.get('total_quantity'), 
             'category': request.data.get('category'), # foreign key
             'unit': request.data.get('unit'), 
             'package': request.data.get('package'), 
@@ -95,7 +94,6 @@ class ItemDetailApiView(APIView):
         data = {
             'item_name': request.data.get('item_name'), 
             'brand': request.data.get('brand'), 
-            'total_quantity': request.data.get('total_quantity'), 
             'category': request.data.get('category'), 
             'unit': request.data.get('unit'), 
             'package': request.data.get('package'), 
@@ -111,7 +109,6 @@ class ItemDetailApiView(APIView):
             # Update the fields of the item object
                 item_instance.item_name = serializer.validated_data['item_name']
                 item_instance.brand = serializer.validated_data['brand']
-                item_instance.total_quantity = serializer.validated_data['total_quantity']
                 item_instance.category = serializer.validated_data['category']
                 item_instance.unit = serializer.validated_data['unit']
                 item_instance.package = serializer.validated_data['package']
@@ -124,7 +121,6 @@ class ItemDetailApiView(APIView):
                 Item.objects.filter(item_id=item_id).update(
                     item_name=item_instance.item_name,
                     brand=item_instance.brand,
-                    total_quantity=item_instance.total_quantity,
                     category= item_instance.category,
                     unit= item_instance.unit  ,                                 
                     item_price_w_vat = item_instance.item_price_w_vat,

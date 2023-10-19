@@ -15,12 +15,12 @@ class InventoryApiView(APIView):
         '''
         List all the inventory
         '''
-        # category = request.query_params.get('category')
+        branch_id = request.query_params.get('branch_id')
 
         inventory = Inventory.objects.filter(removed = False).order_by('inventory_id')
 
-        # if category:
-        #     inventory = inventory.filter(category_id = category) 
+        if branch_id:
+            inventory = inventory.filter(branch_id = branch_id) 
 
         serializer = InventorySerializer(inventory, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

@@ -22,7 +22,7 @@ class ItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Item
-        fields = ["item_id", "item_number", "item_name", "brand", "brand_name","total_quantity", "category", 
+        fields = ["item_id", "item_number", "item_name", "brand", "brand_name", "category", 
                   "category_name", "unit", "package", "item_price_w_vat", "item_price_wo_vat", "retail_price", 
                   "catalyst", "created_at", "updated_at", "removed"]
         
@@ -47,11 +47,12 @@ class SupplierSerializer(serializers.ModelSerializer):
 class InventorySerializer(serializers.ModelSerializer):
     # Adding a field from another table
     item_name = serializers.CharField(source='item.item_name', required=False)
+    item_price_w_vat = serializers.CharField(source='item.item_price_w_vat', required=False)
     branch_name = serializers.CharField(source='branch.branch_name', required=False)
 
     class Meta:
         model = Inventory
-        fields = ["inventory_id", "item", "item_name", "branch", "branch_name", "total_quantity",
+        fields = ["inventory_id", "item", "item_name", "item_price_w_vat", "branch", "branch_name", "total_quantity",
                   "holding_cost",  "created_at", "updated_at", "removed"]
         
 class PurchaseHeaderSerializer(serializers.ModelSerializer):

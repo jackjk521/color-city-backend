@@ -86,7 +86,6 @@ class Item(models.Model):
     )
     item_name = models.CharField(max_length = 255, blank = False, null = False)
     brand = models.ForeignKey("Brand", on_delete=models.DO_NOTHING,  blank = False, null = False)
-    total_quantity = models.IntegerField(blank = False, null = False)
     category = models.ForeignKey("Category", on_delete=models.DO_NOTHING,  blank = False, null = False)
     unit = models.IntegerField(blank = False, null = False)
     package = models.CharField(max_length = 255, blank = False, null = False)
