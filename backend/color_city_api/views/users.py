@@ -26,10 +26,10 @@ class UserAuthApiView(APIView):
             user = User.objects.get(username=username)
             user_data = {
                 'user_id': user.user_id,
+                'branch': user.branch_id, # foreign key
                 'username': user.username,
                 'password': user.password,
                 'user_role': user.user_role,
-                'branch_id': user.branch,
                 'first_name': user.first_name,
                 'last_name': user.last_name,
                 'age': user.age,

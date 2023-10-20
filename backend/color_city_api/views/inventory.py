@@ -15,7 +15,7 @@ class InventoryApiView(APIView):
         '''
         List all the inventory
         '''
-        branch_id = request.query_params.get('branch_id')
+        branch_id = request.query_params.get('branch')
 
         inventory = Inventory.objects.filter(removed = False).order_by('inventory_id')
 
