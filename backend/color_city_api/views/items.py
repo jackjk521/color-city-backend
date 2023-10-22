@@ -2,8 +2,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import permissions
-from ..models import Item, generate_product_number
-from ..serializers import ItemSerializer
+from ..models import Item, generate_product_number, Log
+from ..serializers import ItemSerializer, LogSerializer
 from django.shortcuts import get_object_or_404
 
 # Item 
@@ -31,7 +31,9 @@ class ItemApiView(APIView):
         '''
         Create the Item with given Item Data
         '''
+
         data = {
+            'item_id': request.data.get('item_id'), 
             'item_name': request.data.get('item_name'), 
             'brand': request.data.get('brand'),  # foreign key
             'category': request.data.get('category'), # foreign key
@@ -46,6 +48,9 @@ class ItemApiView(APIView):
         serializer = ItemSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
+
+
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -104,7 +109,7 @@ class ItemDetailApiView(APIView):
         }
 
         serializer = ItemSerializer(instance = item_instance, data=data, partial = True)
-
+        print(request.session.get('user_data'))
         if serializer.is_valid():
             # Update the fields of the item object
                 item_instance.item_name = serializer.validated_data['item_name']
@@ -129,6 +134,23 @@ class ItemDetailApiView(APIView):
                     catalyst = item_instance.catalyst,
                     # Update other fields as needed
                 )
+
+                # user_data = request.session.get('user_data')
+
+                # if user_data is None:
+                #     return Response({'message': 'User data not found in session'}, status=status.HTTP_400_BAD_REQUEST)
+
+                # log_data = {
+                #     'branch': user_data['branch'],
+                #     'user': user_data['user_id'],
+                #     'type': "ITEMS",
+                #     'type_id': request.data.get('item_id'),
+                #     'message': f"{user_data['username']} successfully updated item with item_id {request.data.get('item_id')}."
+                # }
+                # logSerializer = LogSerializer(data=log_data)
+
+                # if logSerializer.is_valid():
+                #     logSerializer.save()
 
                 return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400__BAD_REQUEST)

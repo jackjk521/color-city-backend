@@ -16,7 +16,7 @@ def generate_product_number():
 # Create your models here.
 
 # User Model
-class User(AbstractBaseUser, PermissionsMixin):
+class User(models.Model):
     # Fields of your model
     user_id = models.BigAutoField(primary_key=True, unique=True)
     branch = models.ForeignKey("Branch", on_delete=models.DO_NOTHING,  blank = False, null = False)
@@ -30,8 +30,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     updated_at = models.DateTimeField(auto_now = True, blank = True, null = True)
     removed = models.BooleanField(default=False, blank = True, null = True)
 
-    USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['first_name', 'last_name', 'branch']
+    # USERNAME_FIELD = 'username'
+    # REQUIRED_FIELDS = ['first_name', 'last_name', 'branch']
 
     class Meta:
         db_table = 'users'
@@ -223,9 +223,9 @@ class PurchaseHeader(models.Model):
     transaction_type = models.CharField(max_length=100, blank=False, null=False) # branch or supplier
     total_amount = models.DecimalField(max_digits= 100, decimal_places=2,  blank = False, null = False)
     payment_mode = models.CharField(max_length=100, blank=False, null=False) # cash or check
-    posted_status = models.CharField(max_length=100, default="UNPOSTED",  blank=False, null=False) # unposted by default and if posted (goes to approval status)
-    received_status = models.CharField(max_length=100, default="PENDING",  blank=False, null=False) # pending by default but can be received or not received
-    approval_status = models.CharField(max_length=100, default="PENDING",  blank=False, null=False) # pending by default but can be approved or disapproved
+    date_created = models.DateTimeField(auto_now = True, blank = True, null = True)
+    status = models.CharField(max_length=100, default="PENDING",  blank=False, null=False) # pending aby default but if posted => for approval, once approved the button will show receive btn (once clicked will show received)
+    received_status = models.CharField(max_length=100, default="NONE",  blank=False, null=False) # none by default but will be pending once the order has been approved
     created_at = models.DateTimeField(auto_now_add = True, auto_now = False, blank = True, null = True)
     updated_at = models.DateTimeField(auto_now = True, blank = True, null = True)
     removed = models.BooleanField(default=False, blank = True, null = True)
@@ -252,8 +252,9 @@ class PurchaseLine(models.Model):
     purchase_header = models.ForeignKey("PurchaseHeader", on_delete=models.DO_NOTHING,  blank = False, null = False)
     item = models.ForeignKey("Item", on_delete=models.DO_NOTHING,  blank = False, null = False)
     req_quantity = models.IntegerField(blank=False, null=False)
+    received_quantity = models.IntegerField(default= 0, blank=False, null=False)
     subtotal = models.DecimalField(max_digits= 100, decimal_places=2,  blank = False, null = False)
-    status = models.CharField(max_length=100, default="NONE",  blank=False, null=False) # none by default but can be return or damaged (TBD)
+    status = models.CharField(max_length=100, default="NONE",  blank=False, null=False) # none by default but can be completed or partial
     created_at = models.DateTimeField(auto_now_add = True, auto_now = False, blank = True, null = True)
     updated_at = models.DateTimeField(auto_now = True, blank = True, null = True)
     removed = models.BooleanField(default=False, blank = True, null = True)
@@ -271,4 +272,33 @@ class PurchaseLine(models.Model):
                 self.purchase_line_id = last_object.purchase_line_id + 1
             else:
                 self.purchase_line_id = 1
+            super().save(*args, **kwargs)
+
+
+# Logs Model
+class Log(models.Model):
+    # Fields of your model
+    log_id = models.BigAutoField(primary_key=True, unique=True)
+    branch = models.ForeignKey("Branch", on_delete=models.DO_NOTHING,  blank = False, null = False)
+    user = models.ForeignKey("User", on_delete=models.DO_NOTHING,  blank = False, null = False)
+    type  = models.CharField(max_length=100, default="NONE",  blank=False, null=False) # none by default but can be ITEM, CATEGORY, BRAND and etc
+    type_id  = models.IntegerField(blank=False, null=False)
+    message = models.CharField(max_length=255, blank=False, null=False)
+    created_at = models.DateTimeField(auto_now_add = True, auto_now = False, blank = True, null = True)
+    updated_at = models.DateTimeField(auto_now = True, blank = True, null = True)
+    removed = models.BooleanField(default=False, blank = True, null = True)
+
+    class Meta:
+        db_table = 'logs'
+
+    def __str__(self):
+        return self.log_id
+    
+    def save(self, *args, **kwargs):
+        with transaction.atomic():
+            last_object = Log.objects.select_for_update().order_by('-log_id').first()
+            if last_object:     
+                self.log_id = last_object.log_id + 1
+            else:
+                self.log_id = 1
             super().save(*args, **kwargs)

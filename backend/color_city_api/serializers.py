@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Branch, Item, Category, Brand, Supplier, Inventory, PurchaseHeader, PurchaseLine
+from .models import User, Branch, Item, Category, Brand, Supplier, Inventory, PurchaseHeader, PurchaseLine, Log
 
 class UserSerializer(serializers.ModelSerializer):
     # Adding a field from another table
@@ -77,3 +77,10 @@ class PurchaseLineSerializer(serializers.ModelSerializer):
         model = PurchaseLine
         fields = ["purchase_line_id", "purchase_header", "item", "item_name",  "req_quantity",
                   "subtotal", "status", "created_at", "updated_at", "removed"]
+        
+class LogSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = Log
+        fields = ["log_id", "branch", "user", "type",  "type_id", "message",
+                  "created_at", "updated_at", "removed"]

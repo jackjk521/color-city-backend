@@ -9,6 +9,7 @@ from .views.suppliers import SupplierApiView, SupplierDetailApiView
 from .views.inventory import InventoryApiView, InventoryDetailApiView
 from .views.purchaseHeaders import PurchaseHeaderApiView, PurchaseHeaderDetailApiView
 from .views.purchaseLines import PurchaseLineApiView, PurchaseLineDetailApiView
+from .views.logs import LogApiView, LogDetailApiView
 
 # urlpatterns = [
 #     path('api', TodoListApiView.as_view()),
@@ -52,5 +53,8 @@ urlpatterns = [
 
     # Purchase Lines
     path('api/purchase_lines', PurchaseLineApiView.as_view()),
-    path('api/purchase_line/<int:purchase_line_id>/', PurchaseLineDetailApiView.as_view()),  
+    path('api/purchase_line/<int:purchase_line_id>/', PurchaseLineDetailApiView.as_view()),
+
+    # Logs
+    path('api/logs', LogApiView.as_view()),  
 ]
