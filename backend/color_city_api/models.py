@@ -221,6 +221,7 @@ class PurchaseHeader(models.Model):
     branch = models.ForeignKey("Branch", on_delete=models.DO_NOTHING,  blank = False, null = False)
     user = models.ForeignKey("User", on_delete=models.DO_NOTHING,  blank = False, null = False)
     transaction_type = models.CharField(max_length=100, blank=False, null=False) # branch or supplier
+    supplier = models.ForeignKey("Supplier", on_delete=models.DO_NOTHING,  blank = True, null = True) # holds the supplier id if the transaction_type is suppliers
     total_amount = models.DecimalField(max_digits= 100, decimal_places=2,  blank = False, null = False)
     payment_mode = models.CharField(max_length=100, blank=False, null=False) # cash or check
     date_created = models.DateTimeField(auto_now = True, blank = True, null = True)

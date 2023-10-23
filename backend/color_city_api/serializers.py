@@ -59,15 +59,20 @@ class PurchaseHeaderSerializer(serializers.ModelSerializer):
     # Adding a field from another table
     username = serializers.CharField(source='user.username', required=False)
     branch_name = serializers.CharField(source='branch.branch_name', required=False)
-    post_status = serializers.CharField(source='purchase_header_id.post_status', required=False)
+    status = serializers.CharField(source='purchase_header_id.status', required=False)
     received_status = serializers.CharField(source='purchase_header_id.received_status', required=False)
-    approval_status = serializers.CharField(source='purchase_header_id.approval_status', required=False)
+    supplier_name = serializers.CharField(source='supplier.supplier_name', required=False)
+
 
     class Meta:
         model = PurchaseHeader
-        fields = ["purchase_header_id", "branch", "branch_name", "user", "username",  "transaction_type",
-                  "total_amount", "payment_mode", "posted_status", "received_status",  "approval_status", 
+        fields = ["purchase_header_id", "branch", "branch_name", "user", "username",  "transaction_type", "supplier",
+                  "supplier_name", "total_amount", "payment_mode", "posted_status", "received_status",  "approval_status", 
                   "created_at", "updated_at", "removed"]
+        # Set the required attribute of supplier field to False
+        extra_kwargs = {
+            'supplier': {'required': False}
+        }
         
 class PurchaseLineSerializer(serializers.ModelSerializer):
     # Adding a field from another table
