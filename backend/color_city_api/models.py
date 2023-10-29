@@ -3,15 +3,29 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 # from django.contrib.auth.models import User
 
 # Helper Functions
-def generate_product_number():
-    last_item = Item.objects.order_by('-item_id').first()
-    if last_item:
-        last_item_number = int(last_item.item_number.split('-')[1])
-        new_item_number = f"PN-{last_item_number + 1:010d}"
+def generate_so_number():
+    last_supplier_order = PurchaseHeader.objects.filter(transaction_type="SUPPLIER").order_by('-purchase_header_id').first()
+    if last_supplier_order:
+        last_supplier_order_number = int(last_supplier_order.po_number.split('-')[1])
+        new_supplier_order_number = f"SO-{last_supplier_order_number + 1:010d}"
     else:
-        new_item_number = "PN-000000001"
-    return new_item_number
+        new_supplier_order_number = "SO-000000001"
+    return new_supplier_order_number
+
+def generate_bo_number():
+    last_supplier_order = PurchaseHeader.objects.filter(transaction_type="BRANCH").order_by('-purchase_header_id').first()
+    if last_supplier_order:
+        last_supplier_order_number = int(last_supplier_order.po_number.split('-')[1])
+        new_supplier_order_number = f"SO-{last_supplier_order_number + 1:010d}"
+    else:
+        new_supplier_order_number = "SO-000000001"
+    return new_supplier_order_number
 # :010d (padding 10 digits max)
+
+# Generate formatted brand_name - item_name
+# def generate_brand_item(self):
+#     brand = Brand.objects.get(brand_id=self.brand)
+#     return f"{brand.brand_name} - {self.item_name}"
 
 # Create your models here.
 
@@ -20,6 +34,7 @@ class User(models.Model):
     # Fields of your model
     user_id = models.BigAutoField(primary_key=True, unique=True)
     branch = models.ForeignKey("Branch", on_delete=models.DO_NOTHING,  blank = False, null = False)
+    branch_name = models.CharField(default="SAMPLE" ,max_length = 100, blank = False, null = False)
     username = models.CharField(unique= True, max_length = 100, blank = False, null = False)
     password = models.CharField(max_length = 255, blank = False, null = False)
     user_role = models.CharField(max_length = 100, blank = False, null = False)
@@ -77,11 +92,21 @@ class Branch(models.Model):
 
 # Item Model
 class Item(models.Model):
+
+     # Brand Item Name format START
+    @staticmethod
+    def generate_brand_item(brand, item_name):
+        return f"{brand.brand_name} - {item_name}"
+
+    @property
+    def brand_item(self):
+        return self.generate_brand_item(self.brand, self.item_name)
+    # Brand Item Name format END
+
     # Fields of your model
     item_id =  models.BigAutoField(primary_key=True, unique=True)
     item_number = models.CharField(     
         max_length=20,
-        default=generate_product_number,
         unique=True
     )
     item_name = models.CharField(max_length = 255, blank = False, null = False)
@@ -102,7 +127,8 @@ class Item(models.Model):
 
     def __str__(self):
         return self.item_name
-
+    
+    
     def save(self, *args, **kwargs):
         with transaction.atomic():
             last_object = Item.objects.select_for_update().order_by('-item_id').first()
@@ -221,12 +247,16 @@ class PurchaseHeader(models.Model):
     branch = models.ForeignKey("Branch", on_delete=models.DO_NOTHING,  blank = False, null = False)
     user = models.ForeignKey("User", on_delete=models.DO_NOTHING,  blank = False, null = False)
     transaction_type = models.CharField(max_length=100, blank=False, null=False) # branch or supplier
+    po_number = models.CharField(     
+        max_length=20,
+        unique=True
+    )
     supplier = models.ForeignKey("Supplier", on_delete=models.DO_NOTHING,  blank = True, null = True) # holds the supplier id if the transaction_type is suppliers
     total_amount = models.DecimalField(max_digits= 100, decimal_places=2,  blank = False, null = False)
     payment_mode = models.CharField(max_length=100, blank=False, null=False) # cash or check
     date_created = models.DateTimeField(auto_now = True, blank = True, null = True)
-    status = models.CharField(max_length=100, default="PENDING",  blank=False, null=False) # pending aby default but if posted => for approval, once approved the button will show receive btn (once clicked will show received)
-    received_status = models.CharField(max_length=100, default="NONE",  blank=False, null=False) # none by default but will be pending once the order has been approved
+    status = models.CharField(max_length=100, default="UNPOSTED",  blank=True, null=True) # unposted by default but if posted => for approval, once approved the button will show receive btn (once clicked will show received)
+    received_status = models.CharField(max_length=100, default="PENDING",  blank=True, null=True) # pending by default but will be pending once the order has been approved
     created_at = models.DateTimeField(auto_now_add = True, auto_now = False, blank = True, null = True)
     updated_at = models.DateTimeField(auto_now = True, blank = True, null = True)
     removed = models.BooleanField(default=False, blank = True, null = True)
@@ -250,7 +280,7 @@ class PurchaseHeader(models.Model):
 class PurchaseLine(models.Model):
     # Fields of your model
     purchase_line_id = models.BigAutoField(primary_key=True, unique=True)
-    purchase_header = models.ForeignKey("PurchaseHeader", on_delete=models.DO_NOTHING,  blank = False, null = False)
+    purchase_header = models.ForeignKey("PurchaseHeader", on_delete=models.CASCADE,  blank = False, null = False)
     item = models.ForeignKey("Item", on_delete=models.DO_NOTHING,  blank = False, null = False)
     req_quantity = models.IntegerField(blank=False, null=False)
     received_quantity = models.IntegerField(default= 0, blank=False, null=False)

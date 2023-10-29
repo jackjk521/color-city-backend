@@ -1,11 +1,12 @@
+import json
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import permissions
-from ..models import PurchaseHeader
-from ..serializers import PurchaseHeaderSerializer
+from ..models import PurchaseHeader, PurchaseLine, generate_so_number, generate_bo_number
+from ..serializers import PurchaseHeaderSerializer, PurchaseLineSerializer
 
-# PurchaseHeader 
+# PurchaseHeader + Purchase Lines
 class PurchaseHeaderApiView(APIView):
     # add permission to check if user is authenticated
     # permission_classes = [permissions.IsAuthenticated]
@@ -15,36 +16,73 @@ class PurchaseHeaderApiView(APIView):
         '''
         List all the purchaseHeaders
         '''
-        # category = request.query_params.get('category')
+        transaction_type = request.query_params.get('type')
+        all_branches = request.query_params.get('all_branches')
+        branch_id = request.query_params.get('branch')
 
         purchaseHeaders = PurchaseHeader.objects.filter(removed = False).order_by('purchase_header_id')
 
-        # if category:
-        #     purchaseHeaders = purchaseHeaders.filter(category_id = category) 
+        if transaction_type:
+            purchaseHeaders = purchaseHeaders.filter(transaction_type = transaction_type) 
+        
+        if branch_id:
+            purchaseHeaders = purchaseHeaders.filter(branch_id = branch_id) 
+                    
+        if all_branches:
+            purchaseHeaders = purchaseHeaders.filter(transaction_type = "BRANCH") 
 
-        serializer = PurchaseHeaderSerializer(purchaseHeaders, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        purchase_header_serializer = PurchaseHeaderSerializer(purchaseHeaders, many=True)
+        response_data = []
+        for purchase_header in purchase_header_serializer.data:
+            # Get all matching purchase lines 
+            purchase_lines = PurchaseLine.objects.filter(purchase_header_id=purchase_header['purchase_header_id'])
+            purchase_lines_serializer = PurchaseLineSerializer(purchase_lines, many=True)
+            # Add the purchase lines to each purchase header entry 
+            purchase_header['purchase_lines'] = purchase_lines_serializer.data
+            response_data.append(purchase_header)
+
+        return Response(response_data, status=status.HTTP_200_OK)  
 
     # 2. Create
     def post(self, request, *args, **kwargs):
         '''
         Create the PurchaseHeader with given PurchaseHeader Data
         '''
+
         data = {
-            'branch': request.data.get('branch'), # foreign key
-            'user': request.data.get('user'),  # foreign key
-            'transaction_type': request.data.get('transaction_type'), 
-            'total_amount': request.data.get('total_amount'), 
-            'payment_mode': request.data.get('payment_mode'), 
+            'branch': request.data.get('purchaseHeader[branch]'),
+            'user': request.data.get('purchaseHeader[user]'),
+            'supplier': request.data.get('purchaseHeader[supplier]'),
+            'po_number': request.data.get('purchaseHeader[po_number]'),
+            'transaction_type': request.data.get('purchaseHeader[transaction_type]'),
+            'total_amount': request.data.get('purchaseHeader[total_amount]'),
+            'payment_mode': request.data.get('purchaseHeader[payment_mode]'),
+            'status': request.data.get('purchaseHeader[status]'),
             # Add the status here if needed
         }
 
-        serializer = PurchaseHeaderSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        purchaseHeaderSerializer = PurchaseHeaderSerializer(data=data)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Add the insertion of purchase lines 
+        if purchaseHeaderSerializer.is_valid():
+            purchase_header = purchaseHeaderSerializer.save()
+
+             # Insert purchase lines
+            purchase_lines = json.loads(request.data.get('purchaseLines', '[]'))
+            for purchase_line_data in purchase_lines:
+                purchase_line_data['purchase_header'] = purchase_header.purchase_header_id
+                purchaseLineSerializer = PurchaseLineSerializer(data=purchase_line_data)
+                if purchaseLineSerializer.is_valid():
+                    purchaseLineSerializer.save()
+                else:
+                    # Handle invalid purchase line data
+                     # Handle invalid purchase line data
+                    print(purchaseLineSerializer.errors)  # Print the validation errors for debugging purposes
+                    return Response(purchaseLineSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                
+            return Response(purchaseHeaderSerializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(purchaseHeaderSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class PurchaseHeaderDetailApiView(APIView):
 
@@ -72,8 +110,16 @@ class PurchaseHeaderDetailApiView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        serializer = PurchaseHeaderSerializer(purchase_header_instance)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        purchase_header_serializer = PurchaseHeaderSerializer(purchase_header_instance)
+        purchase_lines = PurchaseLine.objects.filter(purchase_header_id=purchase_header_instance.purchase_header_id)
+        purchase_lines_serializer = PurchaseLineSerializer(purchase_lines, many=True)
+
+        response_data = {
+            "purchase_header": purchase_header_serializer.data,
+            "purchase_lines": purchase_lines_serializer.data
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
 
     # 4. Update
     def put(self, request, purchase_header_id,  *args, **kwargs):
@@ -88,35 +134,63 @@ class PurchaseHeaderDetailApiView(APIView):
             )
            
         data = {
-            'branch': request.data.get('branch'), # foreign key
-            'user': request.data.get('user'),  # foreign key
-            'transaction_type': request.data.get('transaction_type'), 
-            'total_amount': request.data.get('total_amount'), # read only and automatically updated
-            'payment_mode': request.data.get('payment_mode'), 
+            'branch': request.data.get('purchaseHeader[branch]'),
+            'user': request.data.get('purchaseHeader[user]'),
+            'supplier': request.data.get('purchaseHeader[supplier]'),
+            'transaction_type': request.data.get('purchaseHeader[transaction_type]'),
+            'total_amount': request.data.get('purchaseHeader[total_amount]'),
+            'payment_mode': request.data.get('purchaseHeader[payment_mode]'),
+            'status': request.data.get('purchaseHeader[status]'),
+            # Add the status here if needed
         }
 
-        serializer = PurchaseHeaderSerializer(instance = purchase_header_instance, data=data, partial = True)
+        purchase_header_serializer = PurchaseHeaderSerializer(instance = purchase_header_instance, data=data, partial = True)
 
-        if serializer.is_valid():
-            # Update the fields of the item object
-                purchase_header_instance.branch = serializer.validated_data['branch']
-                purchase_header_instance.user = serializer.validated_data['user']
-                purchase_header_instance.transaction_type = serializer.validated_data['transaction_type']
-                purchase_header_instance.total_amount = serializer.validated_data['total_amount']
-                purchase_header_instance.payment_mode = serializer.validated_data['payment_mode']
+        if purchase_header_serializer.is_valid():
+            purchase_header = purchase_header_serializer.save()
 
-                # Call the update() method on the queryset to update the item
-                PurchaseHeader.objects.filter(purchase_header_id=purchase_header_id).update(
-                    branch=purchase_header_instance.branch,
-                    user=purchase_header_instance.user,
-                    transaction_type=purchase_header_instance.transaction_type,
-                    total_amount= purchase_header_instance.total_amount,
-                    payment_mode= purchase_header_instance.payment_mode ,                                 
-                    # Update other fields as needed
-                )
+            # Update purchase lines
+            purchase_lines = json.loads(request.data.get('purchaseLines', '[]'))
 
-                return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400__BAD_REQUEST)
+            # Delete existing purchase lines related to the purchase header
+            PurchaseLine.objects.filter(purchase_header_id= purchase_header.purchase_header_id).delete()
+
+            for purchase_line in purchase_lines:
+                # Access individual properties of each purchase_line object
+                purchase_line['purchase_header'] = purchase_header.purchase_header_id
+                purchaseLineSerializer = PurchaseLineSerializer(data=purchase_line)
+
+                if purchaseLineSerializer.is_valid():
+                    purchaseLineSerializer.save()
+                else:
+                    # Handle invalid purchase line data
+                    # You may choose to raise an exception, return a specific response, etc.
+                    return Response(purchaseLineSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response(purchase_header_serializer.data, status=status.HTTP_200_OK)
+
+        return Response(purchase_header_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        # if purchase_header_serializer.is_valid():
+        #     # Update the fields of the item object
+        #         purchase_header_instance.branch = purchase_header_serializer.validated_data['branch']
+        #         purchase_header_instance.user = purchase_header_serializer.validated_data['user']
+        #         purchase_header_instance.transaction_type = purchase_header_serializer.validated_data['transaction_type']
+        #         purchase_header_instance.total_amount = purchase_header_serializer.validated_data['total_amount']
+        #         purchase_header_instance.payment_mode = purchase_header_serializer.validated_data['payment_mode']
+
+        #         # Call the update() method on the queryset to update the item
+        #         PurchaseHeader.objects.filter(purchase_header_id=purchase_header_id).update(
+        #             branch=purchase_header_instance.branch,
+        #             user=purchase_header_instance.user,
+        #             transaction_type=purchase_header_instance.transaction_type,
+        #             total_amount= purchase_header_instance.total_amount,
+        #             payment_mode= purchase_header_instance.payment_mode ,                                 
+        #             # Update other fields as needed
+        #         )
+
+        #         return Response(purchase_header_serializer.data)
+        # return Response(purchase_header_serializer.errors, status=status.HTTP_400__BAD_REQUEST)
                         
     # 5. Delete
     def delete(self, request, purchase_header_id, *args, **kwargs):
@@ -153,4 +227,13 @@ class PurchaseHeaderDetailApiView(APIView):
             {"res": "Object soft deleted!"},
             status=status.HTTP_200_OK
         )
-    
+
+class GenerateSONumberView(APIView):
+    def get(self, request):
+        so_number = generate_so_number()
+        return Response(so_number)
+
+class GenerateBONumberView(APIView):
+    def get(self, request):
+        bo_number = generate_bo_number()
+        return Response(bo_number)

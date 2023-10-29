@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import permissions
-from ..models import Item, generate_product_number, Log
+from ..models import Item, Log
 from ..serializers import ItemSerializer, LogSerializer
 from django.shortcuts import get_object_or_404
 
@@ -34,6 +34,7 @@ class ItemApiView(APIView):
 
         data = {
             'item_id': request.data.get('item_id'), 
+            'item_number': request.data.get('item_number'), 
             'item_name': request.data.get('item_name'), 
             'brand': request.data.get('brand'),  # foreign key
             'category': request.data.get('category'), # foreign key
@@ -48,8 +49,6 @@ class ItemApiView(APIView):
         serializer = ItemSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
-
-
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -80,9 +79,16 @@ class ItemDetailApiView(APIView):
                 {"res": "Item with Item id does not exists"},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        
+        brand_item = request.query_params.get('item_name')
 
-        serializer = ItemSerializer(item_instance)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if brand_item:
+            serializer = ItemSerializer(item_instance)
+            brand_item_formatted = f"{serializer.data['brand_name']} - {serializer.data['item_name']}"
+            return Response(brand_item_formatted, status=status.HTTP_200_OK)
+        else: 
+            serializer = ItemSerializer(item_instance)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
     # 4. Update
     def put(self, request, item_id,  *args, **kwargs):
@@ -97,6 +103,7 @@ class ItemDetailApiView(APIView):
             )
            
         data = {
+            'item_number': request.data.get('item_number'), 
             'item_name': request.data.get('item_name'), 
             'brand': request.data.get('brand'), 
             'category': request.data.get('category'), 
@@ -109,9 +116,10 @@ class ItemDetailApiView(APIView):
         }
 
         serializer = ItemSerializer(instance = item_instance, data=data, partial = True)
-        print(request.session.get('user_data'))
+
         if serializer.is_valid():
             # Update the fields of the item object
+                item_instance.item_number = serializer.validated_data['item_number']
                 item_instance.item_name = serializer.validated_data['item_name']
                 item_instance.brand = serializer.validated_data['brand']
                 item_instance.category = serializer.validated_data['category']
@@ -124,6 +132,7 @@ class ItemDetailApiView(APIView):
 
                 # Call the update() method on the queryset to update the item
                 Item.objects.filter(item_id=item_id).update(
+                    item_number=item_instance.item_number,
                     item_name=item_instance.item_name,
                     brand=item_instance.brand,
                     category= item_instance.category,
@@ -153,6 +162,7 @@ class ItemDetailApiView(APIView):
                 #     logSerializer.save()
 
                 return Response(serializer.data)
+        
         return Response(serializer.errors, status=status.HTTP_400__BAD_REQUEST)
                         
     # 5. Delete
@@ -191,7 +201,7 @@ class ItemDetailApiView(APIView):
             status=status.HTTP_200_OK
         )
     
-class GenerateItemNumberView(APIView):
-    def get(self, request):
-        item_number = generate_product_number()
-        return Response(item_number)
+# class GenerateItemNumberView(APIView):
+#     def get(self, request):
+#         item_number = generate_product_number()
+#         return Response(item_number)
