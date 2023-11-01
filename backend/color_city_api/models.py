@@ -232,13 +232,16 @@ class Inventory(models.Model):
         return self.inventory_id
     
     def save(self, *args, **kwargs):
-        with transaction.atomic():
-            last_object = Inventory.objects.select_for_update().order_by('-inventory_id').first()
-            if last_object:     
-                self.inventory_id = last_object.inventory_id + 1
-            else:
-                self.inventory_id = 1
+        if self.inventory_id: # if it exists then it will skip the add new id process
             super().save(*args, **kwargs)
+        else:
+            with transaction.atomic():
+                last_object = Inventory.objects.select_for_update().order_by('-inventory_id').first()
+                if last_object:     
+                    self.inventory_id = last_object.inventory_id + 1
+                else:
+                    self.inventory_id = 1
+                super().save(*args, **kwargs)
 
 # Purchase Header Model
 class PurchaseHeader(models.Model):
@@ -294,16 +297,19 @@ class PurchaseLine(models.Model):
         db_table = 'purchase_lines'
 
     def __str__(self):
-        return self.purchase_line_id
+        return self
     
     def save(self, *args, **kwargs):
-        with transaction.atomic():
-            last_object = PurchaseLine.objects.select_for_update().order_by('-purchase_line_id').first()
-            if last_object:     
-                self.purchase_line_id = last_object.purchase_line_id + 1
-            else:
-                self.purchase_line_id = 1
+        if self.purchase_line_id: # if it exists then it will skip the add new id process
             super().save(*args, **kwargs)
+        else:
+            with transaction.atomic():
+                last_object = PurchaseLine.objects.select_for_update().order_by('-purchase_line_id').first()
+                if last_object:     
+                    self.purchase_line_id = last_object.purchase_line_id + 1
+                else:
+                    self.purchase_line_id = 1
+                super().save(*args, **kwargs)
 
 
 # Logs Model

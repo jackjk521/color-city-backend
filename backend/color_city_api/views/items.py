@@ -201,7 +201,5 @@ class ItemDetailApiView(APIView):
             status=status.HTTP_200_OK
         )
     
-# class GenerateItemNumberView(APIView):
-#     def get(self, request):
-#         item_number = generate_product_number()
-#         return Response(item_number)
+# # Items in an inventory
+# class ItemApiView(APIView):

@@ -7,7 +7,7 @@ from .views.users import  UserAuthApiView, UserApiView, UserDetailApiView
 from .views.branches import BranchApiView, BranchDetailApiView
 from .views.suppliers import SupplierApiView, SupplierDetailApiView
 from .views.inventory import InventoryApiView, InventoryDetailApiView
-from .views.purchaseHeaders import PurchaseHeaderApiView, PurchaseHeaderDetailApiView, GenerateBONumberView, GenerateSONumberView
+from .views.purchaseHeaders import PurchaseHeaderApiView, PurchaseHeaderDetailApiView, GenerateBONumberView, GenerateSONumberView, ReceiveApiView
 from .views.purchaseLines import PurchaseLineApiView, PurchaseLineDetailApiView
 from .views.logs import LogApiView, LogDetailApiView
 
@@ -51,6 +51,8 @@ urlpatterns = [
     path('api/purchases/', PurchaseHeaderApiView.as_view()),
     path('api/gen_so_number', GenerateSONumberView.as_view()),
     path('api/gen_bo_number', GenerateBONumberView.as_view()),
+    path('api/receiving/<int:purchase_header_id>/', ReceiveApiView.as_view()),
+    path('api/purchases/', PurchaseHeaderApiView.as_view()),
     path('api/purchases/<int:purchase_header_id>/', PurchaseHeaderDetailApiView.as_view()),  
 
     # # Purchase Lines

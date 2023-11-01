@@ -1,10 +1,13 @@
 import json
+from django.db.models import Q
+from django.core.exceptions import ObjectDoesNotExist
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import permissions
-from ..models import PurchaseHeader, PurchaseLine, generate_so_number, generate_bo_number
-from ..serializers import PurchaseHeaderSerializer, PurchaseLineSerializer
+from ..models import PurchaseHeader, PurchaseLine, generate_so_number, generate_bo_number, Inventory, Item
+from ..serializers import PurchaseHeaderSerializer, PurchaseLineSerializer, InventorySerializer
 
 # PurchaseHeader + Purchase Lines
 class PurchaseHeaderApiView(APIView):
@@ -76,7 +79,6 @@ class PurchaseHeaderApiView(APIView):
                     purchaseLineSerializer.save()
                 else:
                     # Handle invalid purchase line data
-                     # Handle invalid purchase line data
                     print(purchaseLineSerializer.errors)  # Print the validation errors for debugging purposes
                     return Response(purchaseLineSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
                 
@@ -237,3 +239,147 @@ class GenerateBONumberView(APIView):
     def get(self, request):
         bo_number = generate_bo_number()
         return Response(bo_number)
+    
+# ReceiveApiView (POST - will receive multiple purchase lines and updates the received_quantity)
+class ReceiveApiView(APIView):
+    # Get all to be received items that have status NONE or PARTIAL
+    def get(self, request, purchase_header_id, *args, **kwargs):
+        
+        # Check if the purchase header exists
+        try:
+            purchase_header_instance = PurchaseHeader.objects.get(pk=purchase_header_id)
+        except PurchaseHeader.DoesNotExist:
+            return Response(
+                {"res": "PurchaseHeader with PurchaseHeader id does not exist"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Gets all purchase lines that have the matching purchase header and status of none or partial only
+        purchase_lines = PurchaseLine.objects.filter(
+            purchase_header=purchase_header_instance,
+            status__in=["NONE", "PARTIAL"]
+        )
+        purchase_lines_serializer = PurchaseLineSerializer(purchase_lines, many=True) 
+
+        return Response(purchase_lines_serializer.data, status=status.HTTP_200_OK)
+
+    # Check if the received_quantity is 0 if it is then received_quantity = req_quantity otherwise update with the value given ...
+    # Updates the received quantity and status of each purchase lines to COMPLETE OR PARTIAL
+    # Updates the status of the purchase header to received or completed (show in the table)
+    # Updates the MAIN inventory 
+
+    # Update
+    def put(self, request, purchase_header_id,  *args, **kwargs):
+        # Check if the purchase header exists
+        try:
+            purchase_header_instance = PurchaseHeader.objects.get(pk=purchase_header_id)
+        except PurchaseHeader.DoesNotExist:
+            return Response(
+                {"res": "PurchaseHeader with PurchaseHeader id does not exist"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Get all data from the request
+        complete_receive_ids = json.loads(request.data.get('completeReceive', '[]'))
+        purchase_lines_data = json.loads(request.data.get('purchaseLines', '[]'))
+        from_branch_id = request.data.get('from_branch')
+
+        for purchase_line in purchase_lines_data:
+            # Get the matching purchase_line to update
+            line_instance = PurchaseLine.objects.get(purchase_line_id = purchase_line['purchase_line_id'])
+            
+            # If COMPLETE received items ALL RECEIVED the req_quantity
+            if purchase_line['purchase_line_id'] in complete_receive_ids:
+
+                # Update the fields of the purchase line object (WORKS)
+                line_instance.received_quantity = purchase_line['req_quantity']
+                line_instance.status =  "COMPLETED"
+                line_instance.save()
+
+                # IF item exists, update the total_quantity 
+                try:
+                    inventory_instance = Inventory.objects.get(branch=from_branch_id, item=purchase_line['item'], removed=False)
+                    serializer = InventorySerializer(inventory_instance)
+
+                    inventory_instance.total_quantity += int(purchase_line['req_quantity'])
+                    inventory_instance.holding_cost = float(serializer.data['item_price_w_vat']) * float(inventory_instance.total_quantity)
+                    inventory_instance.save()
+
+                except ObjectDoesNotExist:
+                    # Adds a new entry to the inventory
+                    item_data = Item.objects.get(item_id=purchase_line['item'], removed=False)
+                    if item_data:
+                        holding_cost = float(item_data.item_price_w_vat) * int(purchase_line['req_quantity'])
+                        data = {
+                            'item': item_data.item_id,
+                            'branch': from_branch_id,
+                            'total_quantity': int(purchase_line['req_quantity']),
+                            'holding_cost': holding_cost
+                        }
+
+                        serializer = InventorySerializer(data=data)
+                        if serializer.is_valid():
+                            serializer.save()
+                    # else:
+                    #     # Handle the case when the item is not found
+                    #     print("Item not found.")
+
+                if from_branch_id != 1: # TO BE TESTED WITH BRANCH ORDERS
+                    # Deduct the received quantity from the main inventory
+                    find_item = Inventory.objects.filter(branch = 1, item= purchase_line['item'], removed = False)
+
+
+            # If PARTIAL received items
+            else: 
+
+                # Update the fields of the purchase line object
+                line_instance.received_quantity += int(purchase_line['receive_qty'])
+
+                # Check if the req_quantity is equal to received_quantity
+                if line_instance.req_quantity == line_instance.received_quantity:
+                    line_instance.status =  "COMPLETED"
+                else:
+                    line_instance.status =  "PARTIAL"
+                line_instance.save()
+
+                # IF item exists, update the total_quantity 
+                try:
+                    inventory_instance = Inventory.objects.get(branch=from_branch_id, item=purchase_line['item'], removed=False)
+                    serializer = InventorySerializer(inventory_instance)
+
+                    inventory_instance.total_quantity += int(purchase_line['receive_qty'])
+                    inventory_instance.holding_cost = float(serializer.data['item_price_w_vat']) * float(inventory_instance.total_quantity)
+                    inventory_instance.save()
+
+                except ObjectDoesNotExist:
+                    # Adds a new entry to the inventory
+                    item_data = Item.objects.get(item_id=purchase_line['item'], removed=False)
+                    if item_data:
+                        holding_cost = float(item_data.item_price_w_vat) * int(purchase_line['receive_qty'])
+                        data = {
+                            'item': item_data.item_id,
+                            'branch': from_branch_id,
+                            'total_quantity': int(purchase_line['receive_qty']),
+                            'holding_cost': holding_cost
+                        }
+
+                        serializer = InventorySerializer(data=data)
+                        if serializer.is_valid():
+                            serializer.save()
+
+        # Update the purchase header if the number of purchase lines is equal to the purchase lines that have COMPLETED in the status
+        total_purchase_lines =  PurchaseLine.objects.filter(purchase_header_id= purchase_header_id).count()
+        total_completed = PurchaseLine.objects.filter(purchase_header_id= purchase_header_id, status = "COMPLETED").count()
+        if(total_purchase_lines == total_completed):
+            print(total_purchase_lines == total_completed)
+            purchase_header = PurchaseHeader.objects.filter(purchase_header_id=purchase_header_id)
+            purchase_header.received_status = "COMPLETED"
+            purchase_header.update(
+                received_status = purchase_header.received_status
+            )
+            # Need to change these 
+            return Response(True, status=status.HTTP_200_OK) 
+        return Response(True, status=status.HTTP_200_OK)
+
+
+

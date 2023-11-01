@@ -74,24 +74,13 @@ class PurchaseHeaderSerializer(serializers.ModelSerializer):
 class PurchaseLineSerializer(serializers.ModelSerializer):
     # Adding a field from another table
     item_name = serializers.CharField(source='item.item_name', required=False)
-    # item_price_w_vat = serializers.CharField(source='item.item_price_w_vat', required=False)
+    item_price_w_vat = serializers.CharField(source='item.item_price_w_vat', read_only=True, required=False)
     brand_item = serializers.CharField(source='item.brand_item', read_only=True, required=False)
 
-    # If i remove item_price_w_vat  it works
     class Meta:
         model = PurchaseLine
-        fields = ["purchase_line_id", "purchase_header", "item", "item_name", "brand_item",  "req_quantity",
-                "subtotal", "status", "created_at", "updated_at", "removed"]
-
-    # def create(self, validated_data):
-    #         purchase_line = PurchaseLine()
-    #         purchase_line.purchase_header = validated_data.get('purchase_header')
-    #         purchase_line.item = validated_data.get('item')
-    #         purchase_line.req_quantity = validated_data.get('req_quantity')
-    #         purchase_line.subtotal = validated_data.get('subtotal') 
-            
-    #         purchase_line.save()
-    #         return purchase_line
+        fields = ["purchase_line_id", "purchase_header", "item", "item_name", "brand_item", "item_price_w_vat", "req_quantity",
+                "received_quantity", "subtotal", "status", "created_at", "updated_at", "removed"]
         
 class LogSerializer(serializers.ModelSerializer):
     
