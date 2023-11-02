@@ -74,7 +74,7 @@ class Migration(migrations.Migration):
             name='Item',
             fields=[
                 ('item_id', models.BigAutoField(primary_key=True, serialize=False, unique=True)),
-                ('item_number', models.CharField(default=color_city_api.models.generate_product_number, max_length=20, unique=True)),
+                ('item_number', models.CharField(max_length=20, unique=True)),
                 ('item_name', models.CharField(max_length=255)),
                 ('total_quantity', models.IntegerField()),
                 ('unit', models.IntegerField()),

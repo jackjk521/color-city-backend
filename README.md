@@ -48,20 +48,22 @@ COPY brands (supplier_id, brand_name, created_at, removed)
 FROM 'C:\color_city_db\color_city_db - brands.csv'
 DELIMITER ',' CSV HEADER;
 
-COPY items ( item_number, item_name, brand_id, total_quantity, category_id, unit, package, item_price_w_vat, item_price_wo_vat, retail_price, catalyst,  created_at, removed)
-FROM 'C:\color_city_db\color_city_db - items.csv'
-DELIMITER ',' CSV HEADER;
-
 COPY categories (category_name, created_at, removed)
 FROM 'C:\color_city_db\color_city_db - categories.csv'
 DELIMITER ',' CSV HEADER;
 
-COPY users (branch_id, user_role, first_name, last_name, age,  created_at, removed)
-FROM 'C:\color_city_db\color_city_db - users.csv'
+COPY items ( item_number, item_name, brand_item, brand_id, category_id, unit, package, item_price_w_vat, item_price_wo_vat, retail_price, catalyst, created_at, removed)
+FROM 'C:\color_city_db\color_city_db - items.csv'
 DELIMITER ',' CSV HEADER;
+
 
 COPY branches (branch_name, address, created_at, removed)
 FROM 'C:\color_city_db\color_city_db - branches.csv'
+DELIMITER ',' CSV HEADER;
+
+
+COPY users (branch_id, user_role, first_name, last_name, age,  created_at, removed)
+FROM 'C:\color_city_db\color_city_db - users.csv'
 DELIMITER ',' CSV HEADER;
 
 

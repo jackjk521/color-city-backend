@@ -2,8 +2,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import permissions
-from ..models import Item, generate_product_number
-from ..serializers import ItemSerializer
+from ..models import Item, Log
+from ..serializers import ItemSerializer, LogSerializer
 from django.shortcuts import get_object_or_404
 
 # Item 
@@ -31,10 +31,12 @@ class ItemApiView(APIView):
         '''
         Create the Item with given Item Data
         '''
+
         data = {
+            'item_id': request.data.get('item_id'), 
+            'item_number': request.data.get('item_number'), 
             'item_name': request.data.get('item_name'), 
             'brand': request.data.get('brand'),  # foreign key
-            'total_quantity': request.data.get('total_quantity'), 
             'category': request.data.get('category'), # foreign key
             'unit': request.data.get('unit'), 
             'package': request.data.get('package'), 
@@ -47,6 +49,7 @@ class ItemApiView(APIView):
         serializer = ItemSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -76,9 +79,16 @@ class ItemDetailApiView(APIView):
                 {"res": "Item with Item id does not exists"},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        
+        brand_item = request.query_params.get('item_name')
 
-        serializer = ItemSerializer(item_instance)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if brand_item:
+            serializer = ItemSerializer(item_instance)
+            brand_item_formatted = f"{serializer.data['brand_name']} - {serializer.data['item_name']}"
+            return Response(brand_item_formatted, status=status.HTTP_200_OK)
+        else: 
+            serializer = ItemSerializer(item_instance)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
     # 4. Update
     def put(self, request, item_id,  *args, **kwargs):
@@ -93,9 +103,9 @@ class ItemDetailApiView(APIView):
             )
            
         data = {
+            'item_number': request.data.get('item_number'), 
             'item_name': request.data.get('item_name'), 
             'brand': request.data.get('brand'), 
-            'total_quantity': request.data.get('total_quantity'), 
             'category': request.data.get('category'), 
             'unit': request.data.get('unit'), 
             'package': request.data.get('package'), 
@@ -109,9 +119,9 @@ class ItemDetailApiView(APIView):
 
         if serializer.is_valid():
             # Update the fields of the item object
+                item_instance.item_number = serializer.validated_data['item_number']
                 item_instance.item_name = serializer.validated_data['item_name']
                 item_instance.brand = serializer.validated_data['brand']
-                item_instance.total_quantity = serializer.validated_data['total_quantity']
                 item_instance.category = serializer.validated_data['category']
                 item_instance.unit = serializer.validated_data['unit']
                 item_instance.package = serializer.validated_data['package']
@@ -122,9 +132,9 @@ class ItemDetailApiView(APIView):
 
                 # Call the update() method on the queryset to update the item
                 Item.objects.filter(item_id=item_id).update(
+                    item_number=item_instance.item_number,
                     item_name=item_instance.item_name,
                     brand=item_instance.brand,
-                    total_quantity=item_instance.total_quantity,
                     category= item_instance.category,
                     unit= item_instance.unit  ,                                 
                     item_price_w_vat = item_instance.item_price_w_vat,
@@ -134,7 +144,25 @@ class ItemDetailApiView(APIView):
                     # Update other fields as needed
                 )
 
+                # user_data = request.session.get('user_data')
+
+                # if user_data is None:
+                #     return Response({'message': 'User data not found in session'}, status=status.HTTP_400_BAD_REQUEST)
+
+                # log_data = {
+                #     'branch': user_data['branch'],
+                #     'user': user_data['user_id'],
+                #     'type': "ITEMS",
+                #     'type_id': request.data.get('item_id'),
+                #     'message': f"{user_data['username']} successfully updated item with item_id {request.data.get('item_id')}."
+                # }
+                # logSerializer = LogSerializer(data=log_data)
+
+                # if logSerializer.is_valid():
+                #     logSerializer.save()
+
                 return Response(serializer.data)
+        
         return Response(serializer.errors, status=status.HTTP_400__BAD_REQUEST)
                         
     # 5. Delete
@@ -173,7 +201,5 @@ class ItemDetailApiView(APIView):
             status=status.HTTP_200_OK
         )
     
-class GenerateItemNumberView(APIView):
-    def get(self, request):
-        item_number = generate_product_number()
-        return Response(item_number)
+# # Items in an inventory
+# class ItemApiView(APIView):

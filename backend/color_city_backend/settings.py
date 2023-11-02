@@ -60,7 +60,25 @@ MIDDLEWARE = [
 ]
 
 # Custom AUthentication
-AUTH_USER_MODEL = 'color_city_api.User'
+# AUTH_USER_MODEL = 'color_city_api.User'
+
+# SESSIONS
+
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+# SESSION_SAVE_EVERY_REQUEST = True
+# SESSION_COOKIE_AGE = 86400
+# SESSION_COOKIE_SECURE = True  # Enable secure cookies (HTTPS-only)
+# SESSION_COOKIE_HTTPONLY = True  # Prevent client-side JavaScript from accessing the session cookie
+
+# CSRF_COOKIE_SAMESITE = 'Strict'
+# SESSION_COOKIE_SAMESITE = 'Strict'
+# CSRF_COOKIE_HTTPONLY = False  # False since we will grab it via universal-cookies
+# SESSION_COOKIE_HTTPONLY = True
+
+# PROD ONLY
+# CSRF_COOKIE_SECURE = True
+# SESSION_COOKIE_SECURE = True
+
 
 # CORS
 CORS_ALLOWED_ORIGINS = [
@@ -88,15 +106,12 @@ CORS_ALLOWED_HEADERS = [
     "x-requested-with",
     "access-control-allow-origin",
     "cache-control",
+    # "cookie"
 ]
 
 
 ROOT_URLCONF = 'color_city_backend.urls'
 
-# Sessions
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-SESSION_SAVE_EVERY_REQUEST = True
-SESSION_COOKIE_AGE = 86400
 
 TEMPLATES = [
     {
