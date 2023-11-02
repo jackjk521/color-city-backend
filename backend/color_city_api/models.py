@@ -16,9 +16,9 @@ def generate_bo_number():
     last_supplier_order = PurchaseHeader.objects.filter(transaction_type="BRANCH").order_by('-purchase_header_id').first()
     if last_supplier_order:
         last_supplier_order_number = int(last_supplier_order.po_number.split('-')[1])
-        new_supplier_order_number = f"SO-{last_supplier_order_number + 1:010d}"
+        new_supplier_order_number = f"BO-{last_supplier_order_number + 1:010d}"
     else:
-        new_supplier_order_number = "SO-000000001"
+        new_supplier_order_number = "BO-000000001"
     return new_supplier_order_number
 # :010d (padding 10 digits max)
 
@@ -162,7 +162,6 @@ class Category(models.Model):
                 self.category_id = 1
             super().save(*args, **kwargs)
 
-
 # Brand Model
 class Brand(models.Model):
     # Fields of your model
@@ -220,6 +219,7 @@ class Inventory(models.Model):
     item = models.ForeignKey("Item", on_delete=models.DO_NOTHING,  blank = False, null = False)
     branch = models.ForeignKey("Branch", on_delete=models.DO_NOTHING,  blank = False, null = False)
     total_quantity = models.IntegerField(blank=False, null=False)
+    available_stock = models.IntegerField(blank=True, null=True)
     holding_cost = models.DecimalField(max_digits= 100, decimal_places=2, blank = True, null = True)
     created_at = models.DateTimeField(auto_now_add = True, auto_now = False, blank = True, null = True)
     updated_at = models.DateTimeField(auto_now = True, blank = True, null = True)
@@ -271,13 +271,16 @@ class PurchaseHeader(models.Model):
         return self.purchase_header_id
     
     def save(self, *args, **kwargs):
-        with transaction.atomic():
-            last_object = PurchaseHeader.objects.select_for_update().order_by('-purchase_header_id').first()
-            if last_object:     
-                self.purchase_header_id = last_object.purchase_header_id + 1
-            else:
-                self.purchase_header_id = 1
+        if self.purchase_header_id: # if it exists then it will skip the add new id process
             super().save(*args, **kwargs)
+        else:
+            with transaction.atomic():
+                last_object = PurchaseHeader.objects.select_for_update().order_by('-purchase_header_id').first()
+                if last_object:     
+                    self.purchase_header_id = last_object.purchase_header_id + 1
+                else:
+                    self.purchase_header_id = 1
+                super().save(*args, **kwargs)
 
 # Purchase Line  Model
 class PurchaseLine(models.Model):

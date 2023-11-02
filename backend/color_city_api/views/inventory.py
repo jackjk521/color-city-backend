@@ -1,3 +1,5 @@
+from django.core.exceptions import ObjectDoesNotExist
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -34,12 +36,29 @@ class InventoryApiView(APIView):
             'item': request.data.get('item'),  # foreign key
             'branch': request.data.get('branch'),  # foreign key
             'total_quantity': request.data.get('total_quantity'), 
+            'available_stock': request.data.get('total_quantity'),  # for branch orders
             'holding_cost': request.data.get('holding_cost'), 
         }
 
         serializer = InventorySerializer(data=data)
         if serializer.is_valid():
-            serializer.save()
+            # Check if there is an existing entry in that inventory
+            try:
+                # If an entry exists, 
+                inventory_instance = Inventory.objects.get(branch=data['branch'], item=data['item'], removed=False)
+                serializer = InventorySerializer(inventory_instance)
+
+                # Update the following fields: 
+                # Note: Total Quantity will be treated as receive quantity
+                inventory_instance.total_quantity += int(data['total_quantity'])
+                inventory_instance.available_stock += int(data['total_quantity'])
+                inventory_instance.holding_cost = float(serializer.data['item_price_w_vat']) * float(inventory_instance.total_quantity)
+                inventory_instance.save()
+
+            except ObjectDoesNotExist:
+                # If no entry then add a new entry
+                serializer.save()
+                
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -89,6 +108,7 @@ class InventoryDetailApiView(APIView):
             'item': request.data.get('item'),  # foreign key
             'branch': request.data.get('branch'),  # foreign key
             'total_quantity': request.data.get('total_quantity'), 
+            'available_stock': request.data.get('total_quantity'), 
             'holding_cost': request.data.get('holding_cost'), 
         }
 
@@ -99,6 +119,7 @@ class InventoryDetailApiView(APIView):
                 inventory_instance.item = serializer.validated_data['item']
                 inventory_instance.branch = serializer.validated_data['branch']
                 inventory_instance.total_quantity = serializer.validated_data['total_quantity']
+                inventory_instance.available_stock = serializer.validated_data['total_quantity']
                 inventory_instance.holding_cost = serializer.validated_data['holding_cost']
 
                 # Call the update() method on the queryset to update the item
@@ -106,6 +127,7 @@ class InventoryDetailApiView(APIView):
                     item=inventory_instance.item,
                     branch=inventory_instance.branch,
                     total_quantity=inventory_instance.total_quantity,
+                    available_stock=inventory_instance.available_stock,
                     holding_cost= inventory_instance.holding_cost,
                     # Update other fields as needed
                 )

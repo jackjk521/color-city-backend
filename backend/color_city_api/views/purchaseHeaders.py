@@ -23,17 +23,19 @@ class PurchaseHeaderApiView(APIView):
         all_branches = request.query_params.get('all_branches')
         branch_id = request.query_params.get('branch')
 
-        purchaseHeaders = PurchaseHeader.objects.filter(removed = False).order_by('purchase_header_id')
+        purchaseHeaders = PurchaseHeader.objects.filter(removed = False).order_by('-purchase_header_id')
 
         if transaction_type:
             purchaseHeaders = purchaseHeaders.filter(transaction_type = transaction_type) 
         
         if branch_id:
-            purchaseHeaders = purchaseHeaders.filter(branch_id = branch_id) 
-                    
+            purchaseHeaders = purchaseHeaders.filter(branch_id = branch_id)
+    
         if all_branches:
-            purchaseHeaders = purchaseHeaders.filter(transaction_type = "BRANCH") 
-
+            purchaseHeaders = purchaseHeaders.filter(transaction_type = "BRANCH")
+        
+        # Exclude purchaseHeaders with status "DECLINED"
+        purchaseHeaders = purchaseHeaders.exclude(status="DECLINED")
         purchase_header_serializer = PurchaseHeaderSerializer(purchaseHeaders, many=True)
         response_data = []
         for purchase_header in purchase_header_serializer.data:
@@ -229,7 +231,7 @@ class PurchaseHeaderDetailApiView(APIView):
             {"res": "Object soft deleted!"},
             status=status.HTTP_200_OK
         )
-
+# Generate PO numbers
 class GenerateSONumberView(APIView):
     def get(self, request):
         so_number = generate_so_number()
@@ -239,6 +241,45 @@ class GenerateBONumberView(APIView):
     def get(self, request):
         bo_number = generate_bo_number()
         return Response(bo_number)
+    
+ # Update the status changes for purchase orders     
+class UpdatePHStatusView(APIView):
+   def put(self, request, purchase_header_id,  *args, **kwargs):
+        try:
+            purchase_header_instance = PurchaseHeader.objects.get(purchase_header_id=purchase_header_id)
+        except PurchaseHeader.DoesNotExist:
+            return Response(
+                {"res": "PurchaseHeader with PurchaseHeader id does not exist"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        status_value = request.data.get('status')
+        purchase_lines_data = json.loads(request.data.get('purchase_lines', '[]'))
+
+        if status_value == "POST":
+            purchase_header_instance.status = "POSTED"
+        elif status_value == "APPROVE":
+            purchase_header_instance.status = "APPROVED"
+            # Update the inventory available stock in the warehouse for each item
+            for purchase_line in purchase_lines_data:
+                # Get the matching inventory entry to update
+                inventory_instance = Inventory.objects.get(branch= 1, item=purchase_line['item'], removed=False)
+                inventory_instance.available_stock -= int(purchase_line['req_quantity'])
+                inventory_instance.save()
+
+        elif status_value == "DECLINE":
+            purchase_header_instance.status = "DECLINED"
+        else:
+            return Response(
+                {"res": "Invalid status value"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        purchase_header_instance.save()
+        return Response(
+            {"res": "PurchaseHeader status updated successfully"},
+            status=status.HTTP_200_OK
+        )
     
 # ReceiveApiView (POST - will receive multiple purchase lines and updates the received_quantity)
 class ReceiveApiView(APIView):
@@ -302,6 +343,8 @@ class ReceiveApiView(APIView):
                     serializer = InventorySerializer(inventory_instance)
 
                     inventory_instance.total_quantity += int(purchase_line['req_quantity'])
+                    inventory_instance.available_stock += int(purchase_line['req_quantity'])
+
                     inventory_instance.holding_cost = float(serializer.data['item_price_w_vat']) * float(inventory_instance.total_quantity)
                     inventory_instance.save()
 
@@ -314,6 +357,7 @@ class ReceiveApiView(APIView):
                             'item': item_data.item_id,
                             'branch': from_branch_id,
                             'total_quantity': int(purchase_line['req_quantity']),
+                            'available_stock': int(purchase_line['req_quantity']),
                             'holding_cost': holding_cost
                         }
 
@@ -326,7 +370,12 @@ class ReceiveApiView(APIView):
 
                 if from_branch_id != 1: # TO BE TESTED WITH BRANCH ORDERS
                     # Deduct the received quantity from the main inventory
-                    find_item = Inventory.objects.filter(branch = 1, item= purchase_line['item'], removed = False)
+                    inventory_instance = Inventory.objects.get(branch=1, item=purchase_line['item'], removed=False)
+                    serializer = InventorySerializer(inventory_instance)
+
+                    inventory_instance.total_quantity -= int(purchase_line['req_quantity'])
+                    inventory_instance.holding_cost = float(serializer.data['item_price_w_vat']) * float(inventory_instance.total_quantity)
+                    inventory_instance.save()
 
 
             # If PARTIAL received items
@@ -348,6 +397,8 @@ class ReceiveApiView(APIView):
                     serializer = InventorySerializer(inventory_instance)
 
                     inventory_instance.total_quantity += int(purchase_line['receive_qty'])
+                    inventory_instance.available_stock += int(purchase_line['receive_qty'])
+
                     inventory_instance.holding_cost = float(serializer.data['item_price_w_vat']) * float(inventory_instance.total_quantity)
                     inventory_instance.save()
 
@@ -360,12 +411,22 @@ class ReceiveApiView(APIView):
                             'item': item_data.item_id,
                             'branch': from_branch_id,
                             'total_quantity': int(purchase_line['receive_qty']),
+                            'available_stock': int(purchase_line['receive_qty']),
                             'holding_cost': holding_cost
                         }
 
                         serializer = InventorySerializer(data=data)
                         if serializer.is_valid():
                             serializer.save()
+
+                if from_branch_id != 1: # TO BE TESTED WITH BRANCH ORDERS
+                    # Deduct the received quantity from the main inventory
+                    inventory_instance = Inventory.objects.get(branch=1, item=purchase_line['item'], removed=False)
+                    serializer = InventorySerializer(inventory_instance)
+
+                    inventory_instance.total_quantity -= int(purchase_line['receive_qty'])
+                    inventory_instance.holding_cost = float(serializer.data['item_price_w_vat']) * float(inventory_instance.total_quantity)
+                    inventory_instance.save()
 
         # Update the purchase header if the number of purchase lines is equal to the purchase lines that have COMPLETED in the status
         total_purchase_lines =  PurchaseLine.objects.filter(purchase_header_id= purchase_header_id).count()

@@ -49,11 +49,12 @@ class InventorySerializer(serializers.ModelSerializer):
     item_name = serializers.CharField(source='item.item_name', required=False)
     item_price_w_vat = serializers.CharField(source='item.item_price_w_vat', required=False)
     branch_name = serializers.CharField(source='branch.branch_name', required=False)
+    brand_item = serializers.CharField(source='item.brand_item', read_only=True, required=False)
 
     class Meta:
         model = Inventory
         fields = ["inventory_id", "item", "item_name", "item_price_w_vat", "branch", "branch_name", "total_quantity",
-                "holding_cost",  "created_at", "updated_at", "removed"]
+                 "available_stock", "brand_item","holding_cost",  "created_at", "updated_at", "removed"]
         
 class PurchaseHeaderSerializer(serializers.ModelSerializer):
     # Adding a field from another table
@@ -80,7 +81,7 @@ class PurchaseLineSerializer(serializers.ModelSerializer):
     class Meta:
         model = PurchaseLine
         fields = ["purchase_line_id", "purchase_header", "item", "item_name", "brand_item", "item_price_w_vat", "req_quantity",
-                "received_quantity", "subtotal", "status", "created_at", "updated_at", "removed"]
+               "received_quantity", "subtotal", "status", "created_at", "updated_at", "removed"]
         
 class LogSerializer(serializers.ModelSerializer):
     
