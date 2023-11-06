@@ -2,7 +2,9 @@ from rest_framework import serializers
 from .models import User, Branch, Item, Category, Brand, Supplier, Inventory, PurchaseHeader, PurchaseLine, Log
 
 class UserSerializer(serializers.ModelSerializer):
-    # # Adding a field from another table
+    # Adding a field from another table
+    branch_name = serializers.CharField(source='branch.branch_name',  read_only=True, required=False)
+
     class Meta:
         model = User
         fields = ["user_id", "branch", "branch_name", "username",  "password",  "user_role", "first_name", "last_name", "age",

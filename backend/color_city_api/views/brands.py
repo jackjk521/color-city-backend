@@ -86,21 +86,13 @@ class BrandDetailApiView(APIView):
 
         if serializer.is_valid():
             # Update the fields of the brand object
-                brand_instance.brand_name = serializer.validated_data['brand_name']
-                brand_instance.supplier = serializer.validated_data['supplier']
-
-                # Call the update() method on the queryset to update the item
-                Brand.objects.filter(brand_id=brand_id).update(
-                    brand_name=brand_instance.brand_name,
-                    supplier=brand_instance.supplier,
-                
-                    # Update other fields as needed
-                )
-
-                return Response(serializer.data)
+            brand_instance.brand_name = serializer.validated_data['brand_name']
+            brand_instance.supplier = serializer.validated_data['supplier']
+            brand_instance.save()
+            return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400__BAD_REQUEST)
 
-    # 5. Delete
+    # 5. Delete (Soft Delete)
     def delete(self, request, brand_id, *args, **kwargs):
         '''
         Deletes the Brand with given brand_id if exists
@@ -111,27 +103,13 @@ class BrandDetailApiView(APIView):
                 {"res": "Object with Brand id does not exists"}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
-        brand_instance.delete()
+        
+        # Update the "removed" column to True
+        brand_instance.removed = True  
+        brand_instance.save()
+
         return Response(
             {"res": "Object deleted!"},
             status=status.HTTP_200_OK
         )
     
-    def soft_delete(self, request, brand_id, *args, **kwargs):
-        '''
-        Soft deletes the Brand with the given brand_id if it exists
-        '''
-        brand_instance = self.get_object(brand_id)
-        if not brand_instance:
-            return Response(
-                {"res": "Object with Brand id does not exist"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        brand_instance.removed = True  # Update the "removed" column to True
-        brand_instance.save()
-
-        return Response(
-            {"res": "Object soft deleted!"},
-            status=status.HTTP_200_OK
-        )

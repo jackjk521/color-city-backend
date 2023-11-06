@@ -368,7 +368,7 @@ class ReceiveApiView(APIView):
                     #     # Handle the case when the item is not found
                     #     print("Item not found.")
 
-                if from_branch_id != 1: # TO BE TESTED WITH BRANCH ORDERS
+                if int(from_branch_id) != 1: # TO BE TESTED WITH BRANCH ORDERS
                     # Deduct the received quantity from the main inventory
                     inventory_instance = Inventory.objects.get(branch=1, item=purchase_line['item'], removed=False)
                     serializer = InventorySerializer(inventory_instance)
@@ -419,7 +419,7 @@ class ReceiveApiView(APIView):
                         if serializer.is_valid():
                             serializer.save()
 
-                if from_branch_id != 1: # TO BE TESTED WITH BRANCH ORDERS
+                if int(from_branch_id) != 1: # Checks if the branch is the warehouse or not
                     # Deduct the received quantity from the main inventory
                     inventory_instance = Inventory.objects.get(branch=1, item=purchase_line['item'], removed=False)
                     serializer = InventorySerializer(inventory_instance)

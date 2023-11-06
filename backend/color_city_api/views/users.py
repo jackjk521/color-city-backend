@@ -10,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.contrib.sessions.middleware import SessionMiddleware
 
 
-# User 
+# User Auth
 class UserAuthApiView(APIView):
     # add permission to check if user is authenticated
     # permission_classes = [permissions.IsAuthenticated]
@@ -70,7 +70,7 @@ class UserAuthApiView(APIView):
         
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    
+# User
 class UserApiView(APIView):
     # add permission to check if user is authenticated
     # permission_classes = [IsAuthenticated]
@@ -92,7 +92,6 @@ class UserApiView(APIView):
         '''
         data = {
             'branch': request.data.get('branch'),  # foreign key
-            'branch_name': request.data.get('branch_name'),  # foreign key
             'username': request.data.get('username'),
             'password': request.data.get('password'),
             'user_role': request.data.get('user_role'), 
@@ -103,9 +102,10 @@ class UserApiView(APIView):
 
         serializer = UserSerializer(data=data)
         if serializer.is_valid():
+            # If valid, then save user
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-
+        # Else, throw an error
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UserDetailApiView(APIView):
@@ -150,8 +150,7 @@ class UserDetailApiView(APIView):
             )
            
         data = {
-            'branch': request.data.get('branch'),  # foreign key
-            'branch_name': request.data.get('branch_name'),  
+            'branch': request.data.get('branch'),  # foreign key    
             'username': request.data.get('username'),
             'password': request.data.get('password'),
             'user_role': request.data.get('user_role'), 
@@ -164,32 +163,20 @@ class UserDetailApiView(APIView):
 
         if serializer.is_valid():
             # Update the fields of the item object
-                user_instance.branch = serializer.validated_data['branch']
-                user_instance.branch_name = serializer.validated_data['branch_name']
-                user_instance.username = serializer.validated_data['username']
-                user_instance.password = serializer.validated_data['password']
-                user_instance.user_role = serializer.validated_data['user_role']
-                user_instance.first_name = serializer.validated_data['first_name']
-                user_instance.last_name = serializer.validated_data['last_name']
-                user_instance.age = serializer.validated_data['age']
+            user_instance.branch = serializer.validated_data['branch']
+            user_instance.username = serializer.validated_data['username']
+            user_instance.password = serializer.validated_data['password']
+            user_instance.user_role = serializer.validated_data['user_role']
+            user_instance.first_name = serializer.validated_data['first_name']
+            user_instance.last_name = serializer.validated_data['last_name']
+            user_instance.age = serializer.validated_data['age']
 
-                # Call the update() method on the queryset to update the item
-                User.objects.filter(user_id=user_id).update(
-                    branch=user_instance.branch,
-                    branch_name=user_instance.branch_name,
-                    username=user_instance.username,
-                    password=user_instance.password,
-                    user_role=user_instance.user_role,
-                    first_name=user_instance.first_name,
-                    last_name= user_instance.last_name,
-                    age= user_instance.age  ,                                 
-                    # Update other fields as needed
-                )
+            user_instance.save()
 
-                return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400__BAD_REQUEST)
+            return Response(serializer.data,status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
                         
-    # 5. Delete
+    # 5. Delete (Soft Delete)
     def delete(self, request, user_id, *args, **kwargs):
         '''
         Deletes the User item with given user_id if exists
@@ -200,28 +187,12 @@ class UserDetailApiView(APIView):
                 {"res": "Object with User id does not exists"}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
-        user_instance.delete()
+        
+        # Update the "removed" column to True
+        user_instance.removed = True  
+        user_instance.save()
+        
         return Response(
             {"res": "Object deleted!"},
             status=status.HTTP_200_OK
         )
-    
-    def soft_delete(self, request, user_id, *args, **kwargs):
-        '''
-        Soft deletes the User with the given user_id if it exists
-        '''
-        user_instance = self.get_object(user_id)
-        if not user_instance:
-            return Response(
-                {"res": "Object with User id does not exist"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        user_instance.removed = True  # Update the "removed" column to True
-        user_instance.save()
-
-        return Response(
-            {"res": "Object soft deleted!"},
-            status=status.HTTP_200_OK
-        )
-    

@@ -89,22 +89,15 @@ class SupplierDetailApiView(APIView):
 
         if serializer.is_valid():
             # Update the fields of the item object
-                supplier_instance.supplier_name = serializer.validated_data['supplier_name']
-                supplier_instance.contact_num = serializer.validated_data['contact_num']
-                supplier_instance.discount_rate = serializer.validated_data['discount_rate']
-              
-                # Call the update() method on the queryset to update the item
-                Supplier.objects.filter(supplier_id=supplier_id).update(
-                    supplier_name=supplier_instance.supplier_name,
-                    contact_num=supplier_instance.contact_num,
-                    discount_rate=supplier_instance.discount_rate,
-                    # Update other fields as needed
-                )
+            supplier_instance.supplier_name = serializer.validated_data['supplier_name']
+            supplier_instance.contact_num = serializer.validated_data['contact_num']
+            supplier_instance.discount_rate = serializer.validated_data['discount_rate']
+            supplier_instance.save()
 
-                return Response(serializer.data)
+            return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400__BAD_REQUEST)
                         
-    # 5. Delete
+    # 5. Delete (Soft Delete)
     def delete(self, request, supplier_id, *args, **kwargs):
         '''
         Deletes the Supplier item with given supplier_id if exists
@@ -115,27 +108,10 @@ class SupplierDetailApiView(APIView):
                 {"res": "Object with Supplier id does not exists"}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
-        supplier_instance.delete()
+        # Update the "removed" column to True
+        supplier_instance.removed = True  
+        supplier_instance.save()
         return Response(
             {"res": "Object deleted!"},
-            status=status.HTTP_200_OK
-        )
-    
-    def soft_delete(self, request, supplier_id, *args, **kwargs):
-        '''
-        Soft deletes the Supplier with the given supplier_id if it exists
-        '''
-        supplier_instance = self.get_object(supplier_id)
-        if not supplier_instance:
-            return Response(
-                {"res": "Object with Supplier id does not exist"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        supplier_instance.removed = True  # Update the "removed" column to True
-        supplier_instance.save()
-
-        return Response(
-            {"res": "Object soft deleted!"},
             status=status.HTTP_200_OK
         )

@@ -84,16 +84,10 @@ class CategoryDetailApiView(APIView):
 
         if serializer.is_valid():
             # Update the fields of the brand object
-                category_instance.category_name = serializer.validated_data['category_name']
-        
-                # Call the update() method on the queryset to update the item
-                Category.objects.filter(category_id=category_id).update(
-                    category_name=category_instance.category_name,
-                
-                    # Update other fields as needed
-                )
+            category_instance.category_name = serializer.validated_data['category_name']
+            category_instance.save()
 
-                return Response(serializer.data)
+            return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400__BAD_REQUEST)
 
     # 5. Delete
@@ -107,27 +101,10 @@ class CategoryDetailApiView(APIView):
                 {"res": "Object with Category id does not exists"}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
-        category_instance.delete()
+        # Update the "removed" column to True
+        category_instance.removed = True  
+        category_instance.save()
         return Response(
             {"res": "Object deleted!"},
-            status=status.HTTP_200_OK
-        )
-    
-    def soft_delete(self, request, category_id, *args, **kwargs):
-        '''
-        Soft deletes the Category with the given category_id if it exists
-        '''
-        category_instance = self.get_object(category_id)
-        if not category_instance:
-            return Response(
-                {"res": "Object with Category id does not exist"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        category_instance.removed = True  # Update the "removed" column to True
-        category_instance.save()
-
-        return Response(
-            {"res": "Object soft deleted!"},
             status=status.HTTP_200_OK
         )
