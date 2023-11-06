@@ -116,26 +116,17 @@ class InventoryDetailApiView(APIView):
 
         if serializer.is_valid():
             # Update the fields of the item object
-                inventory_instance.item = serializer.validated_data['item']
-                inventory_instance.branch = serializer.validated_data['branch']
-                inventory_instance.total_quantity = serializer.validated_data['total_quantity']
-                inventory_instance.available_stock = serializer.validated_data['total_quantity']
-                inventory_instance.holding_cost = serializer.validated_data['holding_cost']
+            inventory_instance.item = serializer.validated_data['item']
+            inventory_instance.branch = serializer.validated_data['branch']
+            inventory_instance.total_quantity = serializer.validated_data['total_quantity']
+            inventory_instance.available_stock = serializer.validated_data['total_quantity']
+            inventory_instance.holding_cost = serializer.validated_data['holding_cost']
 
-                # Call the update() method on the queryset to update the item
-                Inventory.objects.filter(inventory_id=inventory_id).update(
-                    item=inventory_instance.item,
-                    branch=inventory_instance.branch,
-                    total_quantity=inventory_instance.total_quantity,
-                    available_stock=inventory_instance.available_stock,
-                    holding_cost= inventory_instance.holding_cost,
-                    # Update other fields as needed
-                )
-
-                return Response(serializer.data)
+            inventory_instance.save()
+            return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400__BAD_REQUEST)
                         
-    # 5. Delete
+    # 5. Delete (Soft Delete)
     def delete(self, request, inventory_id, *args, **kwargs):
         '''
         Deletes the Inventory item with given inventory_id if exists
@@ -146,28 +137,11 @@ class InventoryDetailApiView(APIView):
                 {"res": "Object with Inventory id does not exists"}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
-        inventory_instance.delete()
+        # Update the "removed" column to True
+        inventory_instance.removed = True   
+        inventory_instance.save()
+
         return Response(
             {"res": "Object deleted!"},
             status=status.HTTP_200_OK
         )
-    
-    def soft_delete(self, request, inventory_id, *args, **kwargs):
-        '''
-        Soft deletes the Inventory with the given inventory_id if it exists
-        '''
-        inventory_instance = self.get_object(inventory_id)
-        if not inventory_instance:
-            return Response(
-                {"res": "Object with Inventory id does not exist"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        inventory_instance.removed = True  # Update the "removed" column to True
-        inventory_instance.save()
-
-        return Response(
-            {"res": "Object soft deleted!"},
-            status=status.HTTP_200_OK
-        )
-    
