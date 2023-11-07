@@ -90,7 +90,7 @@ CORS_ALLOWED_ORIGINS = [
     'http://*',
     'https://*',
     'http://localhost:3000', # for local testing
-    'https://color-city-frontend-804eviacc-jackjk521.vercel.app/'  # production testing
+    'https://color-city-frontend.vercel.app'  # production testing
 ]
 
 # CORS_ALLOWED_ORIGIN_ALL = True
