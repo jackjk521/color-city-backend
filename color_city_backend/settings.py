@@ -91,6 +91,7 @@ CORS_ALLOWED_ORIGINS = [
     'https://*',
     'http://localhost:3000', # for local testing
     'https://color-city-frontend.vercel.app'  # production testing
+    'https://color-city-backend.onrender.com' # production testing
 ]
 
 # CORS_ALLOWED_ORIGIN_ALL = True
