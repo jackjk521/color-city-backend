@@ -156,8 +156,8 @@ WSGI_APPLICATION = 'color_city_backend.wsgi.application'
 # }
 
 # Production Testing
-database_url= environ.get("DATABASE_URL")
-DATABASES['default'] =  dj_database_url.parse(database_url)
+database_url= env("DATABASE_URL")
+DATABASES =  dj_database_url.parse(database_url)
 
 # DATABASES['default'] =  dj_database_url.parse("postgres://color_city_db_user:QFIbGoqBPvJq9dK54Ar9c51stiLjDEbw@dpg-cl5478ql7jac73cbqh4g-a.oregon-postgres.render.com/color_city_db")
 
