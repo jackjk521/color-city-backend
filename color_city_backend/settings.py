@@ -35,8 +35,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Production (testing)
 # Check if debug is true or false
-DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(" ")
+DEBUG = env("DEBUG", "False").lower() == "true"
+ALLOWED_HOSTS = env("ALLOWED_HOSTS").split(" ")
 
 
 # Application definition
