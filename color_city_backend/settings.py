@@ -35,7 +35,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Production (testing)
 # Check if debug is true or false
-DEBUG = env("DEBUG", "False").lower() == "true"
+DEBUG = env("DEBUG").lower() == "true"
 ALLOWED_HOSTS = env("ALLOWED_HOSTS").split(" ")
 
 
