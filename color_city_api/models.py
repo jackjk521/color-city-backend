@@ -55,13 +55,16 @@ class User(models.Model):
         return self.user_name
     
     def save(self, *args, **kwargs):
-        with transaction.atomic():
-            last_object = User.objects.select_for_update().order_by('-user_id').first()
-            if last_object:     
-                self.user_id = last_object.user_id + 1
-            else:
-                self.user_id = 1
+        if self.user_id: # if it exists then it will skip the add new id process
             super().save(*args, **kwargs)
+        else: 
+            with transaction.atomic():
+                last_object = User.objects.select_for_update().order_by('-user_id').first()
+                if last_object:     
+                    self.user_id = last_object.user_id + 1
+                else:
+                    self.user_id = 1
+                super().save(*args, **kwargs)
 
 
 # Branch Model
@@ -81,13 +84,16 @@ class Branch(models.Model):
         return self.branch_name
     
     def save(self, *args, **kwargs):
-        with transaction.atomic():
-            last_object = Branch.objects.select_for_update().order_by('-branch_id').first()
-            if last_object:     
-                self.branch_id = last_object.branch_id + 1
-            else:
-                self.branch_id = 1
+        if self.branch_id: # if it exists then it will skip the add new id process
             super().save(*args, **kwargs)
+        else: 
+            with transaction.atomic():
+                last_object = Branch.objects.select_for_update().order_by('-branch_id').first()
+                if last_object:     
+                    self.branch_id = last_object.branch_id + 1
+                else:
+                    self.branch_id = 1
+                super().save(*args, **kwargs)
 
 
 # Item Model
@@ -130,13 +136,16 @@ class Item(models.Model):
     
     
     def save(self, *args, **kwargs):
-        with transaction.atomic():
-            last_object = Item.objects.select_for_update().order_by('-item_id').first()
-            if last_object:     
-                self.item_id = last_object.item_id + 1
-            else:
-                self.item_id = 1
+        if self.item_id: # if it exists then it will skip the add new id process
             super().save(*args, **kwargs)
+        else: 
+            with transaction.atomic():
+                last_object = Item.objects.select_for_update().order_by('-item_id').first()
+                if last_object:     
+                    self.item_id = last_object.item_id + 1
+                else:
+                    self.item_id = 1
+                super().save(*args, **kwargs)
 
 # Category Model
 class Category(models.Model):
@@ -154,13 +163,16 @@ class Category(models.Model):
         return self.category_name
     
     def save(self, *args, **kwargs):
-        with transaction.atomic():
-            last_object = Category.objects.select_for_update().order_by('-category_id').first()
-            if last_object:     
-                self.category_id = last_object.category_id + 1
-            else:
-                self.category_id = 1
+        if self.category_id: # if it exists then it will skip the add new id process
             super().save(*args, **kwargs)
+        else:
+            with transaction.atomic():
+                last_object = Category.objects.select_for_update().order_by('-category_id').first()
+                if last_object:     
+                    self.category_id = last_object.category_id + 1
+                else:
+                    self.category_id = 1
+                super().save(*args, **kwargs)
 
 # Brand Model
 class Brand(models.Model):
@@ -179,13 +191,16 @@ class Brand(models.Model):
         return self.brand_name
     
     def save(self, *args, **kwargs):
-        with transaction.atomic():
-            last_object = Brand.objects.select_for_update().order_by('-brand_id').first()
-            if last_object:     
-                self.brand_id = last_object.brand_id + 1
-            else:
-                self.brand_id = 1
+        if self.brand_id: # if it exists then it will skip the add new id process
             super().save(*args, **kwargs)
+        else:
+            with transaction.atomic():
+                last_object = Brand.objects.select_for_update().order_by('-brand_id').first()
+                if last_object:     
+                    self.brand_id = last_object.brand_id + 1
+                else:
+                    self.brand_id = 1
+                super().save(*args, **kwargs)
 
 # Supplier Model
 class Supplier(models.Model):
@@ -204,13 +219,16 @@ class Supplier(models.Model):
         return self.supplier_name
 
     def save(self, *args, **kwargs):
-        with transaction.atomic():
-            last_object = Supplier.objects.select_for_update().order_by('-supplier_id').first()
-            if last_object:     
-                self.supplier_id = last_object.supplier_id + 1
-            else:
-                self.supplier_id = 1
+        if self.supplier_id: # if it exists then it will skip the add new id process
             super().save(*args, **kwargs)
+        else: 
+            with transaction.atomic():
+                last_object = Supplier.objects.select_for_update().order_by('-supplier_id').first()
+                if last_object:     
+                    self.supplier_id = last_object.supplier_id + 1
+                else:
+                    self.supplier_id = 1
+                super().save(*args, **kwargs)
 
 # Inventory Model
 class Inventory(models.Model):

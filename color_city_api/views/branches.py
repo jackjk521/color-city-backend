@@ -87,20 +87,13 @@ class BranchDetailApiView(APIView):
 
         if serializer.is_valid():
             # Update the fields of the item object
-                branch_instance.branch_name = serializer.validated_data['branch_name']
-                branch_instance.address = serializer.validated_data['address']
-
-                # Call the update() method on the queryset to update the item
-                Branch.objects.filter(branch_id=branch_id).update(
-                    branch_name=branch_instance.branch_name,
-                    address=branch_instance.address,                                
-                    # Update other fields as needed
-                )
-
-                return Response(serializer.data)
+            branch_instance.branch_name = serializer.validated_data['branch_name']
+            branch_instance.address = serializer.validated_data['address']
+            branch_instance.save()
+            return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400__BAD_REQUEST)
                         
-    # 5. Delete
+    # 5. Delete (Soft Delete)
     def delete(self, request, branch_id, *args, **kwargs):
         '''
         Deletes the Branch item with given branch_id if exists
@@ -111,28 +104,13 @@ class BranchDetailApiView(APIView):
                 {"res": "Object with Branch id does not exists"}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
-        branch_instance.delete()
-        return Response(
-            {"res": "Object deleted!"},
-            status=status.HTTP_200_OK
-        )
-    
-    def soft_delete(self, request, branch_id, *args, **kwargs):
-        '''
-        Soft deletes the Branch with the given branch_id if it exists
-        '''
-        branch_instance = self.get_object(branch_id)
-        if not branch_instance:
-            return Response(
-                {"res": "Object with Branch id does not exist"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        branch_instance.removed = True  # Update the "removed" column to True
+        
+        # Update the "removed" column to True
+        branch_instance.removed = True  
         branch_instance.save()
 
         return Response(
-            {"res": "Object soft deleted!"},
+            {"res": "Object deleted!"},
             status=status.HTTP_200_OK
         )
     
