@@ -4,7 +4,6 @@ from rest_framework import status
 from rest_framework import permissions
 from ..models import Branch
 from ..serializers import BranchSerializer
-from django.shortcuts import get_object_or_404
 
 # Branch 
 class BranchApiView(APIView):
@@ -18,7 +17,9 @@ class BranchApiView(APIView):
         '''
         branches = Branch.objects.filter(removed = False).order_by('branch_id')
         serializer = BranchSerializer(branches, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if serializer:
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({'message': 'Branches can not be retrieved'}, status=status.HTTP_400_BAD_REQUEST)
 
     # 2. Create
     def post(self, request, *args, **kwargs):
@@ -35,7 +36,7 @@ class BranchApiView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message' : "Error saving branch data", 'errors' : serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 class BranchDetailApiView(APIView):
 
@@ -59,8 +60,8 @@ class BranchDetailApiView(APIView):
         branch_instance = self.get_object(branch_id)
         if not branch_instance:
             return Response(
-                {"res": "Branch with Branch id does not exists"},
-                status=status.HTTP_400_BAD_REQUEST
+                {"message": "Branch with the branch id does not exist"},
+                status=status.HTTP_404_NOT_FOUND
             )
 
         serializer = BranchSerializer(branch_instance)
@@ -74,8 +75,8 @@ class BranchDetailApiView(APIView):
         branch_instance = self.get_object(branch_id)
         if not branch_instance:
             return Response(
-                {"res": "Object with Branch id does not exists"}, 
-                status=status.HTTP_400_BAD_REQUEST
+                {"message": "Branch with that branch id does not exist"}, 
+                status=status.HTTP_404_NOT_FOUND
             )
            
         data = {
@@ -90,8 +91,8 @@ class BranchDetailApiView(APIView):
             branch_instance.branch_name = serializer.validated_data['branch_name']
             branch_instance.address = serializer.validated_data['address']
             branch_instance.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400__BAD_REQUEST)
+            return Response(serializer.data, status = status.HTTP_200_OK)
+        return Response({'message' : "Error updating branch data", 'errors' : serializer.errors}, status=status.HTTP_400__BAD_REQUEST)
                         
     # 5. Delete (Soft Delete)
     def delete(self, request, branch_id, *args, **kwargs):
@@ -101,8 +102,8 @@ class BranchDetailApiView(APIView):
         branch_instance = self.get_object(branch_id)
         if not branch_instance:
             return Response(
-                {"res": "Object with Branch id does not exists"}, 
-                status=status.HTTP_400_BAD_REQUEST
+                {"message": "Branch with that branch id does not exist"}, 
+                status=status.HTTP_404_NOT_FOUND
             )
         
         # Update the "removed" column to True
@@ -110,7 +111,7 @@ class BranchDetailApiView(APIView):
         branch_instance.save()
 
         return Response(
-            {"res": "Object deleted!"},
+            {"message": "Object deleted!"},
             status=status.HTTP_200_OK
         )
     

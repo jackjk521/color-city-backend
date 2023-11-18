@@ -24,7 +24,11 @@ class ItemApiView(APIView):
             items = items.filter(category_id = category) 
 
         serializer = ItemSerializer(items, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if serializer: 
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({"message": "Items can not be retrieved", 'errors' : serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        
 
     # 2. Create
     def post(self, request, *args, **kwargs):
@@ -52,7 +56,7 @@ class ItemApiView(APIView):
 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"message": "Error saving the item data", 'errors' : serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 class ItemDetailApiView(APIView):
 
@@ -76,19 +80,19 @@ class ItemDetailApiView(APIView):
         item_instance = self.get_object(item_id)
         if not item_instance:
             return Response(
-                {"res": "Item with Item id does not exists"},
-                status=status.HTTP_400_BAD_REQUEST
+                {"message": "Item with that ttem id does not exist"},
+                status=status.HTTP_404_NOT_FOUND
             )
         
-        brand_item = request.query_params.get('item_name')
+        # brand_item = request.query_params.get('item_name')
 
-        if brand_item:
-            serializer = ItemSerializer(item_instance)
-            brand_item_formatted = f"{serializer.data['brand_name']} - {serializer.data['item_name']}"
-            return Response(brand_item_formatted, status=status.HTTP_200_OK)
-        else: 
-            serializer = ItemSerializer(item_instance)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+        # if brand_item:
+        #     serializer = ItemSerializer(item_instance)
+        #     brand_item_formatted = f"{serializer.data['brand_name']} - {serializer.data['item_name']}"
+        #     return Response(brand_item_formatted, status=status.HTTP_200_OK)
+        # else: 
+        #     serializer = ItemSerializer(item_instance)
+        #     return Response(serializer.data, status=status.HTTP_200_OK)
 
     # 4. Update
     def put(self, request, item_id,  *args, **kwargs):
@@ -98,8 +102,8 @@ class ItemDetailApiView(APIView):
         item_instance = self.get_object(item_id)
         if not item_instance:
             return Response(
-                {"res": "Object with Item id does not exists"}, 
-                status=status.HTTP_400_BAD_REQUEST
+                {"message": "Item with that ttem id does not exist"},
+                status=status.HTTP_404_NOT_FOUND
             )
            
         data = {
@@ -148,9 +152,9 @@ class ItemDetailApiView(APIView):
             # if logSerializer.is_valid():
             #     logSerializer.save()
 
-            return Response(serializer.data)
+            return Response(serializer.data, status = status.HTTP_200_OK)
         
-        return Response(serializer.errors, status=status.HTTP_400__BAD_REQUEST)
+        return Response({'message' : "Error updating item data", 'errors' : serializer.errors}, status=status.HTTP_400__BAD_REQUEST)
                         
     # 5. Delete
     def delete(self, request, item_id, *args, **kwargs):
@@ -160,13 +164,13 @@ class ItemDetailApiView(APIView):
         item_instance = self.get_object(item_id)
         if not item_instance:
             return Response(
-                {"res": "Object with Item id does not exists"}, 
+                {"message": "Item with that item id does not exist"}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
         # Update the "removed" column to True
         item_instance.removed = True  
         item_instance.save()
         return Response(
-            {"res": "Object deleted!"},
+            {"message": "Successfully removed item"},
             status=status.HTTP_200_OK
         )

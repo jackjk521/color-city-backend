@@ -17,7 +17,10 @@ class CategoryApiView(APIView):
         '''
         categories = Category.objects.filter(removed = False).order_by('category_id')
         serializer = CategorySerializer(categories, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if serializer: 
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({'message': 'Categories can not be retrieved'}, status=status.HTTP_400_BAD_REQUEST)
+        
 
     # 2. Create
     def post(self, request, *args, **kwargs):
@@ -33,7 +36,8 @@ class CategoryApiView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message': 'Error saving categories data', 'errors' : serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class CategoryDetailApiView(APIView):
 
@@ -57,8 +61,8 @@ class CategoryDetailApiView(APIView):
         category_instance = self.get_object(category_id)
         if not category_instance:
             return Response(
-                {"res": "Category with Category id does not exists"},
-                status=status.HTTP_400_BAD_REQUEST
+                {"message": "Category with that category id does not exist"},
+                status=status.HTTP_404_NOT_FOUND
             )
 
         serializer = CategorySerializer(category_instance)
@@ -72,7 +76,7 @@ class CategoryDetailApiView(APIView):
         category_instance = self.get_object(category_id)
         if not category_instance:
             return Response(
-                {"res": "Object with Category id does not exists"}, 
+                {"message": "Category with that category id does not exist"}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
            
@@ -87,8 +91,9 @@ class CategoryDetailApiView(APIView):
             category_instance.category_name = serializer.validated_data['category_name']
             category_instance.save()
 
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400__BAD_REQUEST)
+            return Response(serializer.data, status = status.HTTP_200_OK)
+        return Response({'message': 'Error updating categories data', 'errors' : serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
 
     # 5. Delete
     def delete(self, request, category_id, *args, **kwargs):
@@ -98,13 +103,13 @@ class CategoryDetailApiView(APIView):
         category_instance = self.get_object(category_id)
         if not category_instance:
             return Response(
-                {"res": "Object with Category id does not exists"}, 
+                {"message": "Category with that category id does not exist"}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
         # Update the "removed" column to True
         category_instance.removed = True  
         category_instance.save()
         return Response(
-            {"res": "Object deleted!"},
+            {"message": "Successfully removed category"},
             status=status.HTTP_200_OK
         )

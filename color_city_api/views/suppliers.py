@@ -18,7 +18,11 @@ class SupplierApiView(APIView):
         '''
         suppliers = Supplier.objects.filter(removed = False).order_by('supplier_id')
         serializer = SupplierSerializer(suppliers, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if serializer:   
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response({'message': 'Suppliers can not be retrieved'}, status=status.HTTP_400_BAD_REQUEST)
+
 
     # 2. Create
     def post(self, request, *args, **kwargs):
@@ -35,8 +39,8 @@ class SupplierApiView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response({'message' : "Error saving supplier data", 'errors' : serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class SupplierDetailApiView(APIView):
 
@@ -60,8 +64,8 @@ class SupplierDetailApiView(APIView):
         supplier_instance = self.get_object(supplier_id)
         if not supplier_instance:
             return Response(
-                {"res": "Supplier with Supplier id does not exists"},
-                status=status.HTTP_400_BAD_REQUEST
+                {"message": "Supplier with that supplier id does not exist"},
+                status=status.HTTP_404_NOT_FOUND
             )
 
         serializer = SupplierSerializer(supplier_instance)
@@ -75,8 +79,8 @@ class SupplierDetailApiView(APIView):
         supplier_instance = self.get_object(supplier_id)
         if not supplier_instance:
             return Response(
-                {"res": "Object with Supplier id does not exists"}, 
-                status=status.HTTP_400_BAD_REQUEST
+                {"message": "Supplier with that supplier id does not exist"}, 
+                status=status.HTTP_404_NOT_FOUND
             )
            
         data = {
@@ -94,8 +98,8 @@ class SupplierDetailApiView(APIView):
             supplier_instance.discount_rate = serializer.validated_data['discount_rate']
             supplier_instance.save()
 
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400__BAD_REQUEST)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({"message": "Error updating supplier data", 'errors' : serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
                         
     # 5. Delete (Soft Delete)
     def delete(self, request, supplier_id, *args, **kwargs):
@@ -105,13 +109,13 @@ class SupplierDetailApiView(APIView):
         supplier_instance = self.get_object(supplier_id)
         if not supplier_instance:
             return Response(
-                {"res": "Object with Supplier id does not exists"}, 
-                status=status.HTTP_400_BAD_REQUEST
+                {"message": "Supplier with that supplier id does not exist"}, 
+                status=status.HTTP_404_NOT_FOUND
             )
         # Update the "removed" column to True
         supplier_instance.removed = True  
         supplier_instance.save()
         return Response(
-            {"res": "Object deleted!"},
+            {"message": "Successfully removed supplier"},
             status=status.HTTP_200_OK
         )

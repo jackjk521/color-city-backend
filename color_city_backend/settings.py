@@ -30,13 +30,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
-# DEBUG = True
-# ALLOWED_HOSTS = []
+DEBUG = True
+ALLOWED_HOSTS = []
 
 # Production (testing)
 # Check if debug is true or false
-DEBUG = env("DEBUG").lower() == "true"
-ALLOWED_HOSTS = env("ALLOWED_HOSTS").split(" ")
+# DEBUG = env("DEBUG").lower() == "true"
+# ALLOWED_HOSTS = env("ALLOWED_HOSTS").split(" ")
 
 
 # Application definition
@@ -143,16 +143,16 @@ WSGI_APPLICATION = 'color_city_backend.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 # Production Testing
-database_url= env("DATABASE_URL")
+# database_url= env("DATABASE_URL")
 DATABASES = {
-    #  'default': {
-    #     'ENGINE': 'django.db.backends.postgresql_psycopg2',
-    #     'NAME': env("DB_NAME"),
-    #     'USER': env("DB_USER"),
-    #     'PASSWORD': env("DB_PASSWORD"),
-    #     'HOST': env("DB_HOST"),
-    #     'PORT': env("DB_PORT"),
-    # }
+     'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': env("DB_NAME"),
+        'USER': env("DB_USER"),
+        'PASSWORD': env("DB_PASSWORD"),
+        'HOST': env("DB_HOST"),
+        'PORT': env("DB_PORT"),
+    }
     # 'default': {
     #     'ENGINE': 'django.db.backends.sqlite3',
     #     'NAME': BASE_DIR / 'db.sqlite3',
@@ -160,7 +160,7 @@ DATABASES = {
 }
 
 
-DATABASES['default'] =  dj_database_url.parse(database_url)
+# DATABASES['default'] =  dj_database_url.parse(database_url)
 # DATABASES['default'] =  dj_database_url.parse("postgres://color_city_db_user:QFIbGoqBPvJq9dK54Ar9c51stiLjDEbw@dpg-cl5478ql7jac73cbqh4g-a.oregon-postgres.render.com/color_city_db")
 
 # Password validation
