@@ -25,7 +25,10 @@ class InventoryApiView(APIView):
             inventory = inventory.filter(branch_id = branch_id) 
 
         serializer = InventorySerializer(inventory, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if serializer:
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({'message': 'Inventory data can not be retrieved'}, status=status.HTTP_400_BAD_REQUEST)
+        
 
     # 2. Create
     def post(self, request, *args, **kwargs):
@@ -61,7 +64,7 @@ class InventoryApiView(APIView):
                 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message' : "Error saving inventory data", 'errors' : serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 class InventoryDetailApiView(APIView):
 
@@ -85,8 +88,8 @@ class InventoryDetailApiView(APIView):
         inventory_instance = self.get_object(inventory_id)
         if not inventory_instance:
             return Response(
-                {"res": "Inventory with Inventory id does not exists"},
-                status=status.HTTP_400_BAD_REQUEST
+                {"message": "Inventory entry with that inventory id does not exist"},
+                status=status.HTTP_404_NOT_FOUND
             )
 
         serializer = InventorySerializer(inventory_instance)
@@ -100,8 +103,8 @@ class InventoryDetailApiView(APIView):
         inventory_instance = self.get_object(inventory_id)
         if not inventory_instance:
             return Response(
-                {"res": "Object with Inventory id does not exists"}, 
-                status=status.HTTP_400_BAD_REQUEST
+                {"message": "Inventory entry with that inventory id does not exist"}, 
+                status=status.HTTP_404_NOT_FOUND
             )
            
         data = {
@@ -123,8 +126,8 @@ class InventoryDetailApiView(APIView):
             inventory_instance.holding_cost = serializer.validated_data['holding_cost']
 
             inventory_instance.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400__BAD_REQUEST)
+            return Response(serializer.data, status = status.HTTP_200_OK)
+        return Response({'message' : "Error updating inventory data", 'errors' : serializer.errors}, status=status.HTTP_400__BAD_REQUEST)
                         
     # 5. Delete (Soft Delete)
     def delete(self, request, inventory_id, *args, **kwargs):
@@ -134,14 +137,14 @@ class InventoryDetailApiView(APIView):
         inventory_instance = self.get_object(inventory_id)
         if not inventory_instance:
             return Response(
-                {"res": "Object with Inventory id does not exists"}, 
-                status=status.HTTP_400_BAD_REQUEST
+                {"message": "Inventory entry with that Inventory id does not exist"}, 
+                status=status.HTTP_404_NOT_FOUND
             )
         # Update the "removed" column to True
         inventory_instance.removed = True   
         inventory_instance.save()
 
         return Response(
-            {"res": "Object deleted!"},
+            {"message": "Successfully removed inventory entry"},
             status=status.HTTP_200_OK
         )

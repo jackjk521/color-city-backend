@@ -56,17 +56,16 @@ class UserAuthApiView(APIView):
                 # Include any other desired user data
             }
             request.session.save()
-            print(request.session.get('user_data'))
 
             serializer = UserSerializer(instance = user, data=user_data)
 
             if serializer.is_valid():
                 # Check if the provided password matches the stored password
                 if user.password != password:  # Assuming the password is stored as plain text
-                    return Response({'message': 'Login failed'}, status=status.HTTP_400_BAD_REQUEST)
+                    return Response({'message': 'Invalid Credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
         except User.DoesNotExist:
-            return Response({'message': 'Login failed'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': 'User does not exist'}, status=status.HTTP_404_NOT_FOUND)
         
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -83,7 +82,11 @@ class UserApiView(APIView):
         '''
         users = User.objects.filter(removed = False).order_by('user_id')
         serializer = UserSerializer(users, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if serializer:
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        return Response({'message': 'Users can not be retrieved'}, status=status.HTTP_400_BAD_REQUEST)
+        
 
     # 2. Create
     def post(self, request, *args, **kwargs):
@@ -106,7 +109,8 @@ class UserApiView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         # Else, throw an error
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message' : "Error saving user data", 'errors' : serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UserDetailApiView(APIView):
 
@@ -122,6 +126,7 @@ class UserDetailApiView(APIView):
         except User.DoesNotExist:
             return None
 
+
     # 3. Get Specific 
     def get(self, request, user_id, *args, **kwargs):
         '''
@@ -130,8 +135,8 @@ class UserDetailApiView(APIView):
         user_instance = self.get_object(user_id)
         if not user_instance:
             return Response(
-                {"res": "User with User id does not exists"},
-                status=status.HTTP_400_BAD_REQUEST
+                {"message": "User with that user id does not exist"},
+                status=status.HTTP_404_NOT_FOUND
             )
 
         serializer = UserSerializer(user_instance)
@@ -145,8 +150,8 @@ class UserDetailApiView(APIView):
         user_instance = self.get_object(user_id)
         if not user_instance:
             return Response(
-                {"res": "Object with User id does not exists"}, 
-                status=status.HTTP_400_BAD_REQUEST
+                {"message": "User with that user id does not exist"}, 
+                status=status.HTTP_404_NOT_FOUND
             )
            
         data = {
@@ -174,7 +179,7 @@ class UserDetailApiView(APIView):
             user_instance.save()
 
             return Response(serializer.data,status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"message": "Error updating user data", 'errors' : serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
                         
     # 5. Delete (Soft Delete)
     def delete(self, request, user_id, *args, **kwargs):
@@ -184,8 +189,8 @@ class UserDetailApiView(APIView):
         user_instance = self.get_object(user_id)
         if not user_instance:
             return Response(
-                {"res": "Object with User id does not exists"}, 
-                status=status.HTTP_400_BAD_REQUEST
+                {"message": "User with that user id does not exist"}, 
+                status=status.HTTP_404_NOT_FOUND
             )
         
         # Update the "removed" column to True
@@ -193,6 +198,6 @@ class UserDetailApiView(APIView):
         user_instance.save()
         
         return Response(
-            {"res": "Object deleted!"},
+            {"message": "Successfully removed user"},
             status=status.HTTP_200_OK
         )

@@ -17,7 +17,9 @@ class BrandApiView(APIView):
         '''
         brands = Brand.objects.filter(removed = False).order_by('brand_id')
         serializer = BrandSerializer(brands, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if serializer:
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({'message': 'Brandss can not be retrieved'}, status=status.HTTP_400_BAD_REQUEST)
 
     # 2. Create
     def post(self, request, *args, **kwargs):
@@ -34,7 +36,7 @@ class BrandApiView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'message' : "Error saving brand data", 'errors' : serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 class BrandDetailApiView(APIView):
 
@@ -58,8 +60,8 @@ class BrandDetailApiView(APIView):
         brand_instance = self.get_object(brand_id)
         if not brand_instance:
             return Response(
-                {"res": "Brand with Brand id does not exists"},
-                status=status.HTTP_400_BAD_REQUEST
+                {"message": "Brand with that brand id does not exist"},
+                status=status.HTTP_404_NOT_FOUND
             )
 
         serializer = BrandSerializer(brand_instance)
@@ -73,7 +75,7 @@ class BrandDetailApiView(APIView):
         brand_instance = self.get_object(brand_id)
         if not brand_instance:
             return Response(
-                {"res": "Object with brand id does not exists"}, 
+                {"message": "Brand with rthat brand id does not exist"}, 
                 status=status.HTTP_400_BAD_REQUEST
             )
            
@@ -89,8 +91,8 @@ class BrandDetailApiView(APIView):
             brand_instance.brand_name = serializer.validated_data['brand_name']
             brand_instance.supplier = serializer.validated_data['supplier']
             brand_instance.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400__BAD_REQUEST)
+            return Response(serializer.data, status = status.HTTP_200_OK)
+        return Response({'message' : "Error updating brand data", 'errors' : serializer.errors}, status=status.HTTP_400__BAD_REQUEST)
 
     # 5. Delete (Soft Delete)
     def delete(self, request, brand_id, *args, **kwargs):
@@ -100,8 +102,8 @@ class BrandDetailApiView(APIView):
         brand_instance = self.get_object(brand_id)
         if not brand_instance:
             return Response(
-                {"res": "Object with Brand id does not exists"}, 
-                status=status.HTTP_400_BAD_REQUEST
+                {"message": "brand with that brand id does not exist"}, 
+                status=status.HTTP_404_NOT_FOUND
             )
         
         # Update the "removed" column to True
@@ -109,7 +111,7 @@ class BrandDetailApiView(APIView):
         brand_instance.save()
 
         return Response(
-            {"res": "Object deleted!"},
+            {"message": "Object deleted!"},
             status=status.HTTP_200_OK
         )
     

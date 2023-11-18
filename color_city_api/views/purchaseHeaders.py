@@ -78,15 +78,9 @@ class PurchaseHeaderApiView(APIView):
                 purchase_line_data['purchase_header'] = purchase_header.purchase_header_id
                 purchaseLineSerializer = PurchaseLineSerializer(data=purchase_line_data)
                 if purchaseLineSerializer.is_valid():
-                    purchaseLineSerializer.save()
-                else:
-                    # Handle invalid purchase line data
-                    print(purchaseLineSerializer.errors)  # Print the validation errors for debugging purposes
-                    return Response(purchaseLineSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
-                
+                    purchaseLineSerializer.save()                
             return Response(purchaseHeaderSerializer.data, status=status.HTTP_201_CREATED)
-
-        return Response(purchaseHeaderSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"message": "Error saving purchase order data", 'errors' : purchaseHeaderSerializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 class PurchaseHeaderDetailApiView(APIView):
 
@@ -110,8 +104,8 @@ class PurchaseHeaderDetailApiView(APIView):
         purchase_header_instance = self.get_object(purchase_header_id)
         if not purchase_header_instance:
             return Response(
-                {"res": "PurchaseHeader with PurchaseHeader id does not exists"},
-                status=status.HTTP_400_BAD_REQUEST
+                {"message": "Purchase with that purchase header id does not exist"},
+                status=status.HTTP_404_NOT_FOUND
             )
 
         purchase_header_serializer = PurchaseHeaderSerializer(purchase_header_instance)
@@ -133,8 +127,8 @@ class PurchaseHeaderDetailApiView(APIView):
         purchase_header_instance = self.get_object(purchase_header_id)
         if not purchase_header_instance:
             return Response(
-                {"res": "Object with PurchaseHeader id does not exists"}, 
-                status=status.HTTP_400_BAD_REQUEST
+                {"message": "Purchase order  with purchase header id does not exist"}, 
+                status=status.HTTP_404_NOT_FOUND
             )
            
         data = {
@@ -166,14 +160,10 @@ class PurchaseHeaderDetailApiView(APIView):
 
                 if purchaseLineSerializer.is_valid():
                     purchaseLineSerializer.save()
-                else:
-                    # Handle invalid purchase line data
-                    # You may choose to raise an exception, return a specific response, etc.
-                    return Response(purchaseLineSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
             return Response(purchase_header_serializer.data, status=status.HTTP_200_OK)
 
-        return Response(purchase_header_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"message": "Error updating purchase order data", 'errors' : purchase_header_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
         # if purchase_header_serializer.is_valid():
         #     # Update the fields of the item object
@@ -204,33 +194,34 @@ class PurchaseHeaderDetailApiView(APIView):
         purchase_header_instance = self.get_object(purchase_header_id)
         if not purchase_header_instance:
             return Response(
-                {"res": "Object with PurchaseHeader id does not exists"}, 
-                status=status.HTTP_400_BAD_REQUEST
+                {"message": "Purchase order with purchase header id does not exist"}, 
+                status=status.HTTP_404_NOT_FOUND
             )
-        purchase_header_instance.delete()
+        purchase_header_instance.removed = True  # Update the "removed" column to True
+        purchase_header_instance.save()
         return Response(
-            {"res": "Object deleted!"},
+            {"message": "Successfully removed purchase order"},
             status=status.HTTP_200_OK
         )
     
-    def soft_delete(self, request, purchase_header_id, *args, **kwargs):
-        '''
-        Soft deletes the PurchaseHeader with the given purchase_header_id if it exists
-        '''
-        purchase_header_instance = self.get_object(purchase_header_id)
-        if not purchase_header_instance:
-            return Response(
-                {"res": "Object with PurchaseHeader id does not exist"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+    # def soft_delete(self, request, purchase_header_id, *args, **kwargs):
+    #     '''
+    #     Soft deletes the PurchaseHeader with the given purchase_header_id if it exists
+    #     '''
+    #     purchase_header_instance = self.get_object(purchase_header_id)
+    #     if not purchase_header_instance:
+    #         return Response(
+    #             {"message": "Object with PurchaseHeader id does not exist"},
+    #             status=status.HTTP_400_BAD_REQUEST
+    #         )
 
-        purchase_header_instance.removed = True  # Update the "removed" column to True
-        purchase_header_instance.save()
+    #     purchase_header_instance.removed = True  # Update the "removed" column to True
+    #     purchase_header_instance.save()
 
-        return Response(
-            {"res": "Object soft deleted!"},
-            status=status.HTTP_200_OK
-        )
+    #     return Response(
+    #         {"message": "Object soft deleted!"},
+    #         status=status.HTTP_200_OK
+    #     )
 # Generate PO numbers
 class GenerateSONumberView(APIView):
     def get(self, request):
@@ -249,8 +240,8 @@ class UpdatePHStatusView(APIView):
             purchase_header_instance = PurchaseHeader.objects.get(purchase_header_id=purchase_header_id)
         except PurchaseHeader.DoesNotExist:
             return Response(
-                {"res": "PurchaseHeader with PurchaseHeader id does not exist"},
-                status=status.HTTP_400_BAD_REQUEST
+                 {"message": "Purchase order with purchase header id does not exist"}, 
+                status=status.HTTP_404_NOT_FOUND
             )
         
         status_value = request.data.get('status')
@@ -271,13 +262,13 @@ class UpdatePHStatusView(APIView):
             purchase_header_instance.status = "DECLINED"
         else:
             return Response(
-                {"res": "Invalid status value"},
+                {"message": "Invalid status value"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
         purchase_header_instance.save()
         return Response(
-            {"res": "PurchaseHeader status updated successfully"},
+            {"message": "Purchase order status updated successfully"},
             status=status.HTTP_200_OK
         )
     
@@ -291,8 +282,8 @@ class ReceiveApiView(APIView):
             purchase_header_instance = PurchaseHeader.objects.get(pk=purchase_header_id)
         except PurchaseHeader.DoesNotExist:
             return Response(
-                {"res": "PurchaseHeader with PurchaseHeader id does not exist"},
-                status=status.HTTP_400_BAD_REQUEST
+                {"message": "Purchase order with purchase header id does not exist"}, 
+                status=status.HTTP_404_NOT_FOUND
             )
         
         # Gets all purchase lines that have the matching purchase header and status of none or partial only
@@ -316,7 +307,7 @@ class ReceiveApiView(APIView):
             purchase_header_instance = PurchaseHeader.objects.get(pk=purchase_header_id)
         except PurchaseHeader.DoesNotExist:
             return Response(
-                {"res": "PurchaseHeader with PurchaseHeader id does not exist"},
+                {"message": "Purchase order with that purchase header id does not exist"},
                 status=status.HTTP_400_BAD_REQUEST
             )
         
@@ -432,15 +423,15 @@ class ReceiveApiView(APIView):
         total_purchase_lines =  PurchaseLine.objects.filter(purchase_header_id= purchase_header_id).count()
         total_completed = PurchaseLine.objects.filter(purchase_header_id= purchase_header_id, status = "COMPLETED").count()
         if(total_purchase_lines == total_completed):
-            print(total_purchase_lines == total_completed)
+            # print(total_purchase_lines == total_completed)
             purchase_header = PurchaseHeader.objects.filter(purchase_header_id=purchase_header_id)
             purchase_header.received_status = "COMPLETED"
             purchase_header.update(
                 received_status = purchase_header.received_status
             )
             # Need to change these 
-            return Response(True, status=status.HTTP_200_OK) 
-        return Response(True, status=status.HTTP_200_OK)
+            return Response(serializer.data, status=status.HTTP_200_OK) 
+        return Response({'message' : "Error updating purchase order data", 'errors' : serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 

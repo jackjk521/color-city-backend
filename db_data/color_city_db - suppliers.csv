@@ -1,4 +1,0 @@
-supplier_name,contact_num,discount_rate,created_at,removed
-Supplier 1,"""09053167441""",4.00,10/9/2023 0:00:00,FALSE
-Supplier 2,"""09053167442""",5.00,10/9/2023 0:00:00,FALSE
-Supplier 3,"""09053167443""",7.00,10/9/2023 0:00:00,FALSE
