@@ -1,5 +1,6 @@
 from django.urls import path, include
 
+from .views.dashboard import DashboardApiView
 from .views.items import ItemApiView, ItemDetailApiView
 from .views.brands import BrandApiView, BrandDetailApiView
 from .views.categories import CategoryApiView, CategoryDetailApiView
@@ -17,6 +18,9 @@ from .views.logs import LogApiView, LogDetailApiView
 # ]
 
 urlpatterns = [
+    # Dashboard
+    path('api/dashboard/', DashboardApiView.as_view()),
+
      # Users
     path('api/users', UserApiView.as_view()),
     path('api/auth_user/',  UserAuthApiView.as_view()),

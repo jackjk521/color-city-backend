@@ -425,8 +425,10 @@ class ReceiveApiView(APIView):
         if(total_purchase_lines == total_completed):
             # print(total_purchase_lines == total_completed)
             purchase_header = PurchaseHeader.objects.filter(purchase_header_id=purchase_header_id)
+            purchase_header.status = "COMPLETED"
             purchase_header.received_status = "COMPLETED"
             purchase_header.update(
+                status = purchase_header.status,
                 received_status = purchase_header.received_status
             )
             # Need to change these 
